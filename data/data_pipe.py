@@ -12,6 +12,8 @@ import torch
 import mxnet as mx
 from tqdm import tqdm
 
+from config import get_config
+
 def de_preprocess(tensor):
     return tensor*0.5 + 0.5
     
@@ -26,6 +28,15 @@ def get_train_dataset(imgs_folder):
     return ds, class_num
 
 def get_train_loader(conf):
+
+    if conf.data_mode == 'ailab':
+        # train_dataset = AilabFaceDataset('train')
+        # class_num = train_dataset.num_classes()
+        # train_loader = DataLoader(train_dataset, batch_size=conf.batch_size, shuffle=True, num_workers=conf.num_workers)
+        # return train_loader, class_num
+        ds, class_num = get_train_dataset(conf.processed_data)
+        print(class_num)
+
     if conf.data_mode in ['ms1m', 'concat']:
         ms1m_ds, ms1m_class_num = get_train_dataset(conf.ms1m_folder/'imgs')
         print('ms1m loader generated')
@@ -84,7 +95,8 @@ def load_mx_rec(rec_path):
     imgrec = mx.recordio.MXIndexedRecordIO(str(rec_path/'train.idx'), str(rec_path/'train.rec'), 'r')
     img_info = imgrec.read_idx(0)
     header,_ = mx.recordio.unpack(img_info)
-    max_idx = int(header.label[0])
+    # max_idx = int(header.label[0])
+    max_idx = 10000
     for idx in tqdm(range(1,max_idx)):
         img_info = imgrec.read_idx(idx)
         header, img = mx.recordio.unpack_img(img_info)
@@ -94,6 +106,51 @@ def load_mx_rec(rec_path):
         if not label_path.exists():
             label_path.mkdir()
         img.save(label_path/'{}.jpg'.format(idx), quality=95)
+
+data_transforms = {
+    'train': trans.Compose([
+        # trans.RandomHorizontalFlip(),
+        # trans.ColorJitter(brightness=0.125, contrast=0.125, saturation=0.125),
+        # trans.ToTensor(),
+        # trans.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+        trans.RandomHorizontalFlip(),
+        trans.ToTensor(),
+        trans.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
+    ]),
+    'val': trans.Compose([
+        trans.ToTensor(),
+        trans.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ]),
+}
+
+class AilabFaceDataset(Dataset):
+    def __init__(self, split):
+        conf = get_config()
+        with open(conf.pickle_path_images, 'rb') as file_images:
+            data = pickle.load(file_images)
+
+        with open(conf.pickle_class_labels, 'rb') as file_labels:
+            labels = pickle.load(file_labels)
+        self.labels = labels
+        self.split = split
+        self.samples = data
+        self.transformer = data_transforms['train']
+
+    def __getitem__(self, i):
+        sample = self.samples[i]
+        filename = sample['img']
+        label = sample['label']
+
+        img = Image.open(filename)
+        img = self.transformer(img)
+
+        return img, label
+
+    def __len__(self):
+        return len(self.samples)
+
+    def num_classes(self):
+        return len(self.labels)
 
 # class train_dataset(Dataset):
 #     def __init__(self, imgs_bcolz, label_bcolz, h_flip=True):

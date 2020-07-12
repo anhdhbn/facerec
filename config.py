@@ -6,6 +6,12 @@ from torchvision import transforms as trans
 
 def get_config(training = True):
     conf = edict()
+    # conf.raw_data = Path("/media/ailab/DATA/FaceImages")
+    conf.raw_data = Path("/media/ailab/DATA/facescrub/actors/images")
+    conf.processed_data = Path("./pre_processed")
+    conf.pickle_path_images = './data/faces_ailab_112x112.pickle'
+    conf.pickle_class_labels = './data/faces_ailab_labels.pickle'
+    
     conf.data_path = Path('data')
     conf.work_path = Path('work_space/')
     conf.model_path = conf.work_path/'models'
@@ -22,7 +28,7 @@ def get_config(training = True):
                     trans.ToTensor(),
                     trans.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
                 ])
-    conf.data_mode = 'emore'
+    conf.data_mode = 'ailab'
     conf.vgg_folder = conf.data_path/'faces_vgg_112x112'
     conf.ms1m_folder = conf.data_path/'faces_ms1m_112x112'
     conf.emore_folder = conf.data_path/'faces_emore'
