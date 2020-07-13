@@ -28,14 +28,15 @@ def get_train_dataset(imgs_folder):
     return ds, class_num
 
 def get_train_loader(conf):
-
+    class_num = 0
+    ds = None
+    
     if conf.data_mode == 'ailab':
-        # train_dataset = AilabFaceDataset('train')
-        # class_num = train_dataset.num_classes()
-        # train_loader = DataLoader(train_dataset, batch_size=conf.batch_size, shuffle=True, num_workers=conf.num_workers)
-        # return train_loader, class_num
-        ds, class_num = get_train_dataset(conf.processed_data)
-        print(class_num)
+        ds = AilabFaceDataset('train')
+        class_num = ds.num_classes()
+        
+        # ds, class_num = get_train_dataset(conf.processed_data)
+        print(f"[INFO] Num class: {class_num}")
 
     if conf.data_mode in ['ms1m', 'concat']:
         ms1m_ds, ms1m_class_num = get_train_dataset(conf.ms1m_folder/'imgs')
@@ -56,7 +57,9 @@ def get_train_loader(conf):
         class_num = vgg_class_num + ms1m_class_num
     elif conf.data_mode == 'emore':
         ds, class_num = get_train_dataset(conf.emore_folder/'imgs')
+
     loader = DataLoader(ds, batch_size=conf.batch_size, shuffle=True, pin_memory=conf.pin_memory, num_workers=conf.num_workers)
+
     return loader, class_num 
     
 def load_bin(path, rootdir, transform, image_size=[112,112]):
@@ -138,6 +141,7 @@ class AilabFaceDataset(Dataset):
 
     def __getitem__(self, i):
         sample = self.samples[i]
+        # print(f"[INFO] Sample in get_item: {sample}")
         filename = sample['img']
         label = sample['label']
 
