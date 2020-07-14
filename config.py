@@ -7,10 +7,19 @@ from torchvision import transforms as trans
 def get_config(training = True):
     conf = edict()
     # conf.raw_data = Path("/media/ailab/DATA/FaceImages")
-    conf.raw_data = Path("/media/ailab/DATA/facescrub/actors/images")
-    conf.processed_data = Path("./pre_processed")
-    conf.pickle_path_images = './data/faces_ailab_112x112.pickle'
-    conf.pickle_class_labels = './data/faces_ailab_labels.pickle'
+    conf.raw_data = Path("/media/ailab/DATA/facescrub/actors")
+    
+    conf.dataset_name = "facescrub"
+    conf.dataset_ratio_val = 0.2
+    # train val 80 20
+    conf.processed_data = Path("./pre_processed/")
+    conf.train_path = conf.processed_data/f'{conf.dataset_name}'/'train'
+    conf.val_path = conf.processed_data/f'{conf.dataset_name}'/'val'
+
+    conf.pickle_train_images = conf.train_path/'faces_ailab_112x112.pickle'
+    conf.pickle_val_images = conf.val_path/'faces_ailab_112x112.pickle'
+
+    conf.pickle_class_labels = conf.processed_data/f'{conf.dataset_name}'/'faces_ailab_labels.pickle'
     
     conf.data_path = Path('data')
     conf.work_path = Path('work_space/')
@@ -44,7 +53,7 @@ def get_config(training = True):
         conf.momentum = 0.9
         conf.pin_memory = True
 #         conf.num_workers = 4 # when batchsize is 200
-        conf.num_workers = 3
+        conf.num_workers = 4
         conf.ce_loss = CrossEntropyLoss()    
 #--------------------Inference Config ------------------------
     else:
