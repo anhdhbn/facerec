@@ -1,4 +1,4 @@
-from data.data_pipe import de_preprocess, get_train_loader, get_val_data
+from data.data_pipe import de_preprocess, get_train_loader, get_val_loader, get_val_data
 from model import Backbone, Arcface, MobileFaceNet, Am_softmax, l2_norm
 from verifacation import evaluate
 import torch
@@ -26,7 +26,8 @@ class face_learner(object):
         
         if not inference:
             self.milestones = conf.milestones
-            self.loader, self.class_num = get_train_loader(conf)        
+            self.train_loader, self.class_num = get_train_loader(conf)
+            self.val_loader = get_val_loader(conf)       
 
             self.writer = SummaryWriter(conf.log_path)
             self.step = 0
@@ -50,11 +51,16 @@ class face_learner(object):
             print(self.optimizer)
 #             self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, patience=40, verbose=True)
 
-            print('optimizers generated')    
-            self.board_loss_every = len(self.loader)//100
-            self.evaluate_every = len(self.loader)//10
-            self.save_every = len(self.loader)//5
-            # self.agedb_30, self.cfp_fp, self.lfw, self.agedb_30_issame, self.cfp_fp_issame, self.lfw_issame = get_val_data(self.loader.dataset.root.parent)
+            print('[INFO] Optimizers generated')    
+            self.board_loss_every = len(self.train_loader)//100
+            if (self.board_loss_every  < 5):
+                self.board_loss_every = 5
+            print(f"[INFO] Board loss every: {self.board_loss_every}")
+            self.evaluate_every = len(self.train_loader)//10
+            print(f"[INFO] Evaluate every: {self.evaluate_every}")
+            self.save_every = len(self.train_loader)//5
+            print(f"[INFO] Save every: {self.save_every}")
+            # self.agedb_30, self.cfp_fp, self.lfw, self.agedb_30_issame, self.cfp_fp_issame, self.lfw_issame = get_val_data(self.train_loader.dataset.root.parent)
         else:
             self.threshold = conf.threshold
     
@@ -128,7 +134,7 @@ class face_learner(object):
                 bloding_scale=3.,
                 num=None):
         if not num:
-            num = len(self.loader)
+            num = len(self.train_loader)
         mult = (final_value / init_value)**(1 / num)
         lr = init_value
         for params in self.optimizer.param_groups:
@@ -139,7 +145,7 @@ class face_learner(object):
         batch_num = 0
         losses = []
         log_lrs = []
-        for i, (imgs, labels) in tqdm(enumerate(self.loader), total=num):
+        for i, (imgs, labels) in tqdm(enumerate(self.train_loader), total=num):
 
             imgs = imgs.to(conf.device)
             labels = labels.to(conf.device)
@@ -183,7 +189,9 @@ class face_learner(object):
 
     def train(self, conf, epochs):
         self.model.train()
-        running_loss = 0.            
+        running_loss = 0.
+        val_loss = 0.        
+        accuracy = 0.0    
         for e in range(epochs):
             print('epoch {} started'.format(e))
             if e == self.milestones[0]:
@@ -192,15 +200,19 @@ class face_learner(object):
                 self.schedule_lr()      
             if e == self.milestones[2]:
                 self.schedule_lr()                                 
-            for imgs, labels in tqdm(iter(self.loader)):
+            for imgs, labels in tqdm(iter(self.train_loader)):
                 # print(imgs, labels)
                 # print(imgs, labels)
                 imgs = imgs.to(conf.device)
+                # print(f"[INFO] Images: {imgs}")
                 labels = labels.to(conf.device)
+                # print(f"[INFO] Labels: {labels}")
                 self.optimizer.zero_grad()
                 embeddings = self.model(imgs)
+                # print(f"[INFO] Embeddings: {embeddings}")
                 thetas = self.head(embeddings, labels)
                 loss = conf.ce_loss(thetas, labels)
+                # print(f"[INFO] Loss: {loss}")
                 loss.backward()
                 running_loss += loss.item()
                 self.optimizer.step()
@@ -218,12 +230,29 @@ class face_learner(object):
                 #     accuracy, best_threshold, roc_curve_tensor = self.evaluate(conf, self.cfp_fp, self.cfp_fp_issame)
                 #     self.board_val('cfp_fp', accuracy, best_threshold, roc_curve_tensor)
                 #     self.model.train()
-                accuracy = 0.0
+                
                 if self.step % self.save_every == 0 and self.step != 0:
                     self.save_state(conf, accuracy)
                     
                 self.step += 1
+
+            self.model.eval()
+            for imgs, labels in tqdm(iter(self.val_loader)):
+                imgs = imgs.to(conf.device)
+                # print(f"[INFO] Images: {imgs}")
+                labels = labels.to(conf.device)
+                # print(f"[INFO] Labels: {labels}")
+                embeddings = self.model(imgs)
+                # print(f"[INFO] Embeddings: {embeddings}")
+                thetas = self.head(embeddings, labels)
+                loss = conf.ce_loss(thetas, labels)
+                val_loss += loss.item()
+
                 
+            loss_board = val_loss
+            self.writer.add_scalar('val_loss', loss_board, self.step)
+            val_loss = 0.
+            
         self.save_state(conf, accuracy, to_save_folder=True, extra='final')
 
     def schedule_lr(self):

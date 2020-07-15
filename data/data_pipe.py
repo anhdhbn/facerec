@@ -27,6 +27,11 @@ def get_train_dataset(imgs_folder):
     class_num = ds[-1][1] + 1
     return ds, class_num
 
+def get_val_loader(conf):
+    ds = AilabFaceDataset('val')
+    loader = DataLoader(ds, batch_size=conf.batch_size, shuffle=True, pin_memory=conf.pin_memory, num_workers=conf.num_workers)
+    return loader
+
 def get_train_loader(conf):
     class_num = 0
     ds = None
@@ -76,7 +81,6 @@ def load_bin(path, rootdir, transform, image_size=[112,112]):
         i += 1
         if i % 1000 == 0:
             print('loading bin', i)
-    print(data.shape)
     np.save(str(rootdir)+'_list', np.array(issame_list))
     return data, issame_list
 
@@ -129,9 +133,14 @@ data_transforms = {
 class AilabFaceDataset(Dataset):
     def __init__(self, split):
         conf = get_config()
-        with open(conf.pickle_path_images, 'rb') as file_images:
-            data = pickle.load(file_images)
-
+        data = None
+        if split == "train":
+            with open(conf.pickle_train_images, 'rb') as file_images:
+                data = pickle.load(file_images)
+        else:
+            with open(conf.pickle_val_images, 'rb') as file_images:
+                data = pickle.load(file_images)
+            
         with open(conf.pickle_class_labels, 'rb') as file_labels:
             labels = pickle.load(file_labels)
         self.labels = labels

@@ -21,12 +21,36 @@ class MTCNN():
         
     def align(self, img):
         _, landmarks = self.detect_faces(img)
+        if len(landmarks) == 0:
+            return None
+        facial5points = [[landmarks[0][j],landmarks[0][j+5]] for j in range(5)]
+        warped_face = warp_and_crop_face(np.array(img), facial5points, self.refrence, crop_size=(112,112))
+        return Image.fromarray(warped_face)
+
+        # try:
+        #     _, landmarks = self.detect_faces(img)
+        #     if len(landmarks) == 0:
+        #         return None
+        #     facial5points = [[landmarks[0][j],landmarks[0][j+5]] for j in range(5)]
+        #     warped_face = warp_and_crop_face(np.array(img), facial5points, self.refrence, crop_size=(112,112))
+        #     return Image.fromarray(warped_face)
+        # except:
+        #     return None
+
+    def align_and_take_one(self, img, limit=None, min_face_size=30.0):
+        boxes, landmarks = self.detect_faces(img, min_face_size)
+        if len(landmarks) == 0:
+            return None
+        if len(boxes) != 1:
+            return None
         facial5points = [[landmarks[0][j],landmarks[0][j+5]] for j in range(5)]
         warped_face = warp_and_crop_face(np.array(img), facial5points, self.refrence, crop_size=(112,112))
         return Image.fromarray(warped_face)
     
     def align_multi(self, img, limit=None, min_face_size=30.0):
         boxes, landmarks = self.detect_faces(img, min_face_size)
+        if len(landmarks) == 0:
+            return None
         if limit:
             boxes = boxes[:limit]
             landmarks = landmarks[:limit]
@@ -87,6 +111,8 @@ class MTCNN():
 
             # collect boxes (and offsets, and scores) from different scales
             bounding_boxes = [i for i in bounding_boxes if i is not None]
+            if len(bounding_boxes) == 0: 
+                return [], []
             bounding_boxes = np.vstack(bounding_boxes)
 
             keep = nms(bounding_boxes[:, 0:5], nms_thresholds[0])
