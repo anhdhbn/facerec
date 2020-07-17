@@ -11,6 +11,14 @@ from model import l2_norm
 import pdb
 import cv2
 
+import os
+import random
+from glob import glob
+from tqdm import tqdm
+
+from data.data_pipe import InferenceDataset
+from torch.utils.data import DataLoader
+
 def separate_bn_paras(modules):
     if not isinstance(modules, list):
         modules = [*modules.modules()]
@@ -151,3 +159,97 @@ def draw_box_name(bbox,name,frame):
                     3,
                     cv2.LINE_AA)
     return frame
+
+
+def clear_non_image(folder_path):
+    paths = glob(f"{folder_path}/*")
+    image_type = [".png", ".jpg", ".jpeg"]
+    return [path for path in paths if os.path.splitext(path)[1] in image_type]
+
+def take_random_image_in_folder(folder_path, take=2):
+    list_images = clear_non_image(folder_path)
+    return list(set(random.choices(list_images, k=take)))
+
+def take_random_folder_label(paths, take=1, except_folder=""):
+    paths = [path for path in paths if path != except_folder]
+    return list(set(random.choices(paths, k=take)))
+
+def get_pairs_intra_label(path):
+    list_images = clear_non_image(path)
+    list1 = list_images[0::2]
+    list2 = list_images[1::2]
+    return [(list1[idx], list2[idx]) for idx in range(min(len(list1), len(list2)))]
+
+def get_pairs_inter_label(current_path, list_label_folder, intra_pairs):
+    # result = []
+    # for idx in range(len(intra_pairs)):
+    #     img1 = intra_pairs[idx][0]
+    #     path = take_random_folder_label(list_label_folder)[0]
+    #     img2 = take_random_image_in_folder(path, 1)[0]
+    #     result.append((img1, img2))
+    # return result
+    return [(intra_pairs[idx][0], take_random_image_in_folder(take_random_folder_label(list_label_folder, except_folder=current_path)[0], 1)[0]) for idx in range(len(intra_pairs))]
+
+def get_embed(img_path, learner, conf):
+    img = Image.open(img_path).convert('RGB').resize((112, 112), Image.ANTIALIAS)
+    # train_transform = trans.Compose([
+    #     trans.RandomHorizontalFlip(),
+    #     trans.ToTensor(),
+    #     trans.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
+    # ])
+    mirror = trans.functional.hflip(img)
+    emb = learner.model(conf.test_transform(img).to(conf.device).unsqueeze(0))
+    emb_mirror = learner.model(conf.test_transform(mirror).to(conf.device).unsqueeze(0))
+    return l2_norm(emb + emb_mirror)
+
+def findDistance_cos(a, b):
+    ''' Compute cosin between 2 vectors
+    '''
+    # from numpy import dot
+    # from numpy.linalg import norm
+    # cos_sin = dot(a, b)/(norm(a)*norm(b))
+    # return np.arccos(cos_sin)
+    a = a.reshape(1, -1)
+    b = b.reshape(1, -1)
+    from sklearn.metrics.pairwise import cosine_distances
+    return cosine_distances(a, b)[0][0]
+
+
+
+
+def findDistance(a, b):
+    ''' Compute distance between 2 vectors
+    '''
+    return np.linalg.norm(a-b)
+
+
+def calc_diff_and_similar(all_inter_pairs, all_intra_pairs,conf ,learner, func_find_diff=findDistance_cos, numtake=None):
+    similar, diff = [], []
+    # for imgs, labels in tqdm(iter(self.train_loader)):
+    # all_inter_pairs[:numtake]
+    ds_inter = InferenceDataset(all_inter_pairs)
+    ds_intra = InferenceDataset(all_intra_pairs)
+
+    loader_inter = DataLoader(ds_inter, batch_size=conf.batchsize_infer, shuffle=True)
+    loader_intra = DataLoader(ds_intra, batch_size=conf.batchsize_infer, shuffle=True)
+    learner.model.eval()
+
+    for img1s, img2s in tqdm(iter(loader_inter)):
+        imgs = img1s.to(conf.device)
+        embeddings1 = learner.model(imgs).cpu().detach().numpy()
+
+        imgs = img2s.to(conf.device)
+        embeddings2 = learner.model(imgs).cpu().detach().numpy()
+        for idx in range(len(embeddings1)):
+            diff.append(func_find_diff(embeddings1[idx], embeddings2[idx]))
+
+    for img1s, img2s in tqdm(iter(loader_intra)):
+        imgs = img1s.to(conf.device)
+        embeddings1 = learner.model(imgs).cpu().detach().numpy()
+
+        imgs = img2s.to(conf.device)
+        embeddings2 = learner.model(imgs).cpu().detach().numpy()
+        for idx in range(len(embeddings1)):
+            similar.append(func_find_diff(embeddings1[idx], embeddings2[idx]))
+
+    return diff, similar

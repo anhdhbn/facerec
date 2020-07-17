@@ -16,6 +16,7 @@ if __name__ == '__main__':
     parser.add_argument("-u", "--update", help="whether perform update the facebank",action="store_true")
     parser.add_argument("-tta", "--tta", help="whether test time augmentation",action="store_true")
     parser.add_argument("-c", "--score", help="whether show the confidence score",action="store_true")
+    # parser.add_argument("-p", "--path_model", help="Path to pretrain model", action="store_true")
     args = parser.parse_args()
 
     conf = get_config(False)
@@ -23,8 +24,12 @@ if __name__ == '__main__':
     mtcnn = MTCNN()
     print('mtcnn loaded')
     
+    # Enable inference
     learner = face_learner(conf, True)
     learner.threshold = args.threshold
+
+    # if args.path_model:
+    #     print(f"[INFO] Loading pretrain model at: {args.path_model}")
     if conf.device.type == 'cpu':
         learner.load_state(conf, 'cpu_final.pth', True, True)
     else:
@@ -39,10 +44,11 @@ if __name__ == '__main__':
         targets, names = load_facebank(conf)
         print('facebank loaded')
 
+    cap = cv2.VideoCapture('videos/wa.avi')
     # inital camera
-    cap = cv2.VideoCapture(0)
-    cap.set(3,1280)
-    cap.set(4,720)
+    # cap = cv2.VideoCapture(0)
+    # cap.set(3,1280)
+    # cap.set(4,720)
     if args.save:
         video_writer = cv2.VideoWriter(conf.data_path/'recording.avi', cv2.VideoWriter_fourcc(*'XVID'), 6, (1280,720))
         # frame rate 6 due to my laptop is quite slow...
@@ -50,8 +56,8 @@ if __name__ == '__main__':
         isSuccess,frame = cap.read()
         if isSuccess:            
             try:
-#                 image = Image.fromarray(frame[...,::-1]) #bgr to rgb
-                image = Image.fromarray(frame)
+                image = Image.fromarray(frame[...,::-1]) #bgr to rgb
+                # image = Image.fromarray(frame)
                 bboxes, faces = mtcnn.align_multi(image, conf.face_limit, conf.min_face_size)
                 bboxes = bboxes[:,:-1] #shape:[10,4],only keep 10 highest possibiity faces
                 bboxes = bboxes.astype(int)

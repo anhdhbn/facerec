@@ -1,6 +1,6 @@
 from data.data_pipe import de_preprocess, get_train_loader, get_val_loader, get_val_data
 from model import Backbone, Arcface, MobileFaceNet, Am_softmax, l2_norm
-from verifacation import evaluate
+from verifacation import evaluate, evaluate_cus
 import torch
 from torch import optim
 import numpy as np
@@ -13,17 +13,25 @@ from PIL import Image
 from torchvision import transforms as trans
 import math
 import bcolz
+import os
+from pathlib import Path
 
 class face_learner(object):
     def __init__(self, conf, inference=False):
-        print(conf)
         if conf.use_mobilfacenet:
             self.model = MobileFaceNet(conf.embedding_size).to(conf.device)
             print('MobileFaceNet model generated')
         else:
             self.model = Backbone(conf.net_depth, conf.drop_ratio, conf.net_mode).to(conf.device)
+            
             print('{}_{} model generated'.format(conf.net_mode, conf.net_depth))
-        
+            
+        if conf.load_pretrain:
+            print(f"[INFO] Loading pretrain model at: {conf.pretrain_path}")
+            self.model.load_state_dict(torch.load(conf.pretrain_path))
+        # if torch.cuda.device_count() > 1:
+        #     self.model = torch.nn.DataParallel(self.model, device_ids=[0, 1])
+
         if not inference:
             self.milestones = conf.milestones
             self.train_loader, self.class_num = get_train_loader(conf)
@@ -69,6 +77,9 @@ class face_learner(object):
             save_path = conf.save_path
         else:
             save_path = conf.model_path
+        
+        if not os.path.isdir(save_path):
+            Path(save_path).mkdir(parents=True, exist_ok=True)
         torch.save(
             self.model.state_dict(), save_path /
             ('model_{}_accuracy:{}_step:{}_{}.pth'.format(get_time(), accuracy, self.step, extra)))
@@ -126,6 +137,33 @@ class face_learner(object):
         roc_curve_tensor = trans.ToTensor()(roc_curve)
         return accuracy.mean(), best_thresholds.mean(), roc_curve_tensor
     
+    def evaluate_custom(self, conf, epoch):
+        self.model.eval()
+        val_loss = 0.
+        idx = epoch * len(iter(self.val_loader))
+        with torch.no_grad():
+            for imgs, labels in tqdm(iter(self.val_loader)):
+                imgs = imgs.to(conf.device)
+                # print(f"[INFO] Images: {imgs}")
+                labels = labels.to(conf.device)
+                # print(f"[INFO] Labels: {labels}")
+                embeddings = self.model(imgs)
+                # print(f"[INFO] Embeddings: {embeddings}")
+                thetas = self.head(embeddings, labels)
+                # print(f"Thetas: {thetas}")
+                loss = conf.ce_loss(thetas, labels)
+                # print(f"Loss: {loss}")
+                val_loss += loss.item()
+
+                if idx % self.board_loss_every // 5 == 0 and idx != 0:
+                    loss_board = val_loss / self.board_loss_every
+                    self.writer.add_scalar('val_loss', loss_board, idx)
+                    # print(f"Loss: {val_loss}")
+                    val_loss = 0.
+                idx += 1
+        
+        # self.writer.add_scalar('val_loss', val_loss, self.step)
+
     def find_lr(self,
                 conf,
                 init_value=1e-8,
@@ -189,8 +227,7 @@ class face_learner(object):
 
     def train(self, conf, epochs):
         self.model.train()
-        running_loss = 0.
-        val_loss = 0.        
+        running_loss = 0.      
         accuracy = 0.0    
         for e in range(epochs):
             print('epoch {} started'.format(e))
@@ -235,23 +272,8 @@ class face_learner(object):
                     self.save_state(conf, accuracy)
                     
                 self.step += 1
-
-            self.model.eval()
-            for imgs, labels in tqdm(iter(self.val_loader)):
-                imgs = imgs.to(conf.device)
-                # print(f"[INFO] Images: {imgs}")
-                labels = labels.to(conf.device)
-                # print(f"[INFO] Labels: {labels}")
-                embeddings = self.model(imgs)
-                # print(f"[INFO] Embeddings: {embeddings}")
-                thetas = self.head(embeddings, labels)
-                loss = conf.ce_loss(thetas, labels)
-                val_loss += loss.item()
-
-                
-            loss_board = val_loss
-            self.writer.add_scalar('val_loss', loss_board, self.step)
-            val_loss = 0.
+            
+            self.evaluate_custom(conf, e)
             
         self.save_state(conf, accuracy, to_save_folder=True, extra='final')
 

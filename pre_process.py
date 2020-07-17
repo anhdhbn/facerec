@@ -76,7 +76,7 @@ def create_pickle(detect_face = False):
         current_class_id = current_class_id + 1
 
     print("[INFO] Extracting data for val.")
-    for parent_dir in tqdm(list_dir[len_train:]):
+    for parent_dir in tqdm(list_dir[len_train:len_data]):
         new_samples, label = extract_data(parent_dir, current_class_id, conf.val_path, detect_face)
         samples_val = samples_val + new_samples
         class_ids[current_class_id] = label
