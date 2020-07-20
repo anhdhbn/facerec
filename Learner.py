@@ -304,4 +304,19 @@ class face_learner(object):
         dist = torch.sum(torch.pow(diff, 2), dim=1)
         minimum, min_idx = torch.min(dist, dim=1)
         min_idx[minimum > self.threshold] = -1 # if no match, set idx to -1
-        return min_idx, minimum               
+        return min_idx, minimum           
+
+    def infer_cus(self, conf, faces, target_embs, tta=False):
+        # target_embs = torch.cat(torch.from_numpy(np.array(target_embs[:])))
+        target_embs = torch.from_numpy(target_embs)
+        embs = [self.model(conf.test_transform(img).to(conf.device).unsqueeze(0)) for img in faces]
+        source_embs = torch.cat(embs)
+        # print(f"[INFO] embedding from images: {source_embs.shape}")
+
+        diff = source_embs.unsqueeze(-1).to(conf.device) - target_embs.transpose(1,0).unsqueeze(0).to(conf.device)
+        # print(f"[INFO] Diff: {diff.shape}")
+        dist = torch.sum(torch.pow(diff, 2), dim=1)
+        # print(f"[INFO] Calclulate distance between pred_emb and targer_emb: {dist}")
+        minimum, min_idx = torch.min(dist, dim=1)
+        min_idx[minimum > self.threshold] = -1 # if no match, set idx to -1
+        return min_idx, minimum

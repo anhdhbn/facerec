@@ -2,6 +2,7 @@ from datetime import datetime
 from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
+import numpy
 plt.switch_backend('agg')
 import io
 from torchvision import transforms as trans
@@ -11,12 +12,13 @@ from model import l2_norm
 import pdb
 import cv2
 
+
 import os
 import random
 from glob import glob
 from tqdm import tqdm
 
-from data.data_pipe import InferenceDataset
+from data.data_pipe import InferenceDataset, TestBankDataset
 from torch.utils.data import DataLoader
 
 def separate_bn_paras(modules):
@@ -211,8 +213,8 @@ def findDistance_cos(a, b):
     # return np.arccos(cos_sin)
     a = a.reshape(1, -1)
     b = b.reshape(1, -1)
-    from sklearn.metrics.pairwise import cosine_distances
-    return cosine_distances(a, b)[0][0]
+    from sklearn.metrics.pairwise import cosine_distances, cosine_similarity
+    return abs(cosine_similarity(a, b)[0][0])
 
 
 
@@ -230,8 +232,8 @@ def calc_diff_and_similar(all_inter_pairs, all_intra_pairs,conf ,learner, func_f
     ds_inter = InferenceDataset(all_inter_pairs)
     ds_intra = InferenceDataset(all_intra_pairs)
 
-    loader_inter = DataLoader(ds_inter, batch_size=conf.batchsize_infer, shuffle=True)
-    loader_intra = DataLoader(ds_intra, batch_size=conf.batchsize_infer, shuffle=True)
+    loader_inter = DataLoader(ds_inter, batch_size=conf.batchsize_infer, shuffle=False)
+    loader_intra = DataLoader(ds_intra, batch_size=conf.batchsize_infer, shuffle=False)
     learner.model.eval()
 
     for img1s, img2s in tqdm(iter(loader_inter)):
@@ -240,6 +242,7 @@ def calc_diff_and_similar(all_inter_pairs, all_intra_pairs,conf ,learner, func_f
 
         imgs = img2s.to(conf.device)
         embeddings2 = learner.model(imgs).cpu().detach().numpy()
+        # diff = [func_find_diff(emb1, emb2) for emb1, emb2 in zip(embeddings1, embeddings2)]
         for idx in range(len(embeddings1)):
             diff.append(func_find_diff(embeddings1[idx], embeddings2[idx]))
 
@@ -249,7 +252,37 @@ def calc_diff_and_similar(all_inter_pairs, all_intra_pairs,conf ,learner, func_f
 
         imgs = img2s.to(conf.device)
         embeddings2 = learner.model(imgs).cpu().detach().numpy()
+
+        # similar = [func_find_diff(emb1, emb2) for emb1, emb2 in zip(embeddings1, embeddings2)]
         for idx in range(len(embeddings1)):
             similar.append(func_find_diff(embeddings1[idx], embeddings2[idx]))
 
     return diff, similar
+
+def get_pred(diff, similar, threshold):
+    def calc(distances, threshold):
+        return [False if dis > threshold else True for dis in distances]
+    return calc(diff, threshold) + calc(similar, threshold)
+
+def calc_embed_bank(image_paths, learner, conf):
+    ds = TestBankDataset(image_paths[:])
+    loader = DataLoader(ds, batch_size=conf.batchsize_infer, shuffle=False)
+
+    learner.model.eval()
+
+    embeddings, labels = None, []
+
+    for img, label in tqdm(iter(loader)):
+        imgs = img.to(conf.device)
+        tmp = learner.model(imgs).cpu().detach().numpy()
+        if embeddings is None: embeddings = tmp
+        else: embeddings = numpy.concatenate((embeddings, tmp), axis=0)
+        labels += label
+        # print(embeddings.shape, len(labels))
+    
+    return embeddings, labels
+
+def load_face_bank_cus(conf):
+    import pickle
+    with open(conf.embedding_path, 'rb') as file_stored_emb:
+        return pickle.load(file_stored_emb)

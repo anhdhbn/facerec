@@ -11,6 +11,8 @@ import pickle
 import torch
 import mxnet as mx
 from tqdm import tqdm
+import os
+from pathlib import Path
 
 from config import get_config
 
@@ -66,6 +68,9 @@ def get_train_loader(conf):
     loader = DataLoader(ds, batch_size=conf.batch_size, shuffle=True, pin_memory=conf.pin_memory, num_workers=conf.num_workers)
 
     return loader, class_num 
+
+# def get_databank_loader(conf):
+#     ds = AilabFaceDataset('train')
     
 def load_bin(path, rootdir, transform, image_size=[112,112]):
     if not rootdir.exists():
@@ -177,6 +182,20 @@ class InferenceDataset(Dataset):
         img1 = self.transformer(img1)
         img2 = self.transformer(img2)
         return img1, img2 
+
+    def __len__(self):
+        return len(self.list_path_images)
+
+class TestBankDataset(Dataset):
+    def __init__(self, list_path_images):
+        self.conf = get_config() 
+        self.list_path_images = list_path_images           
+        self.transformer = data_transforms['val']
+
+    def __getitem__(self, i):
+        path = self.list_path_images[i]
+        img = Image.open(path).convert('RGB').resize((112, 112), Image.ANTIALIAS)
+        return self.transformer(img), os.path.basename(Path(path).parent)
 
     def __len__(self):
         return len(self.list_path_images)

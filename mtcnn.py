@@ -50,7 +50,7 @@ class MTCNN():
     def align_multi(self, img, limit=None, min_face_size=30.0):
         boxes, landmarks = self.detect_faces(img, min_face_size)
         if len(landmarks) == 0:
-            return None
+            return [], []
         if limit:
             boxes = boxes[:limit]
             landmarks = landmarks[:limit]
