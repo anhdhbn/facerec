@@ -17,6 +17,7 @@ from pathlib import Path
 
 
 mtcnn = MTCNN()
+
 print('mtcnn loaded')
 
 # /BASE_DATA/
@@ -30,13 +31,12 @@ print('mtcnn loaded')
 # anhdh, 1
 
 
-
 def clear_path(paths):
     image_type = [".png", ".jpg", ".jpeg"]
     return [path for path in paths if os.path.splitext(path)[1] in image_type]
 
 
-def create_pickle(detect_face = False):
+def create_pickle(detect_face=False):
     conf = get_config()
     samples_train = []
     samples_val = []
@@ -47,16 +47,13 @@ def create_pickle(detect_face = False):
     print(f"[INFO] Num actors: {len(list_dir)}")
     dataset_name = conf.dataset_name
     new_dataset_dir = os.path.join(conf.processed_data, dataset_name)
-    
+
     if not os.path.isdir(new_dataset_dir):
         Path(new_dataset_dir).mkdir(parents=True, exist_ok=True)
-    if not os.path.isdir(new_dataset_dir):
+    if os.path.isdir(new_dataset_dir):
         Path(conf.train_path).mkdir(parents=True, exist_ok=True)
-    if not os.path.isdir(new_dataset_dir):
+    if os.path.isdir(new_dataset_dir):
         Path(conf.val_path).mkdir(parents=True, exist_ok=True)
-    # return
-
-
 
     len_data = len(list_dir)
     len_val = int(len_data * conf.dataset_ratio_val)
@@ -68,7 +65,8 @@ def create_pickle(detect_face = False):
 
     print("[INFO] Extracting data for training.")
     for parent_dir in tqdm(list_dir[:len_train]):
-        new_samples, label = extract_data(parent_dir, current_class_id, conf.train_path, detect_face)
+        new_samples, label = extract_data(
+            parent_dir, current_class_id, conf.train_path, detect_face)
         samples_train = samples_train + new_samples
         class_ids[current_class_id] = label
         if len(new_samples) == 0:
@@ -77,12 +75,13 @@ def create_pickle(detect_face = False):
 
     print("[INFO] Extracting data for val.")
     for parent_dir in tqdm(list_dir[len_train:]):
-        new_samples, label = extract_data(parent_dir, current_class_id, conf.val_path, detect_face)
+        new_samples, label = extract_data(
+            parent_dir, current_class_id, conf.val_path, detect_face)
         samples_val = samples_val + new_samples
         class_ids[current_class_id] = label
         if len(new_samples) == 0:
             continue
-        current_class_id = current_class_id + 1    
+        current_class_id = current_class_id + 1
 
     print(f"[INFO] Num sample train: {len(samples_train)}")
     print(f"[INFO] Num sample val: {len(samples_val)}")
@@ -97,59 +96,66 @@ def create_pickle(detect_face = False):
     with open(conf.pickle_class_labels, "wb") as file_labels:
         pickle.dump(class_ids, file_labels)
 
+
 def extract_data(parent_dir, current_class_id, new_dataset_dir, detect_face=False):
     if (os.path.isdir(parent_dir)):
-        new_samples, label = process_folder_label(current_class_id, new_dataset_dir, parent_dir, detect_face = detect_face)
-        
-        return new_samples, label
-    return [], None
+        # print(f"extract data with parent_dir: {parent_dir} true")
+        new_samples, label = process_folder_label(
+            current_class_id, new_dataset_dir, parent_dir, detect_face=detect_face)
 
-def process_folder_label(current_class_id, new_dataset_dir, parent_dir, detect_face = False):
+        return new_samples, label
+    else:
+        # print(f"extract data with parent_dir: {parent_dir} false")
+        return [], None
+
+
+def process_folder_label(current_class_id, new_dataset_dir, parent_dir, detect_face=False):
     conf = get_config()
     samples = []
-
+    # print('parent_dir: ', parent_dir)
     # Create labels
     label = os.path.split(parent_dir)[1]
-    
+    # print(f"[INFO] parent dir: {parent_dir}")
     id_label = current_class_id
-    
+
     # print(f"[INFO] create id: {id_label}")
     # Store label and corresponding id
 
-    # new_parent_dir = os.path.join(new_dataset_dir, str(id_label))
     new_parent_dir = os.path.join(new_dataset_dir, str(id_label))
-
+    # print(f'new_parent_dir: ', new_parent_dir)
     # print("Dir: ", label)
-    for imageFile in clear_path(glob.glob(os.path.join(conf.raw_data, parent_dir, "*"))):
+    for imageFile in clear_path(glob.glob(os.path.join(parent_dir, "*"))):
         # image = cv.imread(imageFile)
         # print(f"Image shape: {image.shape}")
         image = Image.open(imageFile).convert('RGB')
-        if detect_face:   
+        # print('imageFile: ', imageFile)
+        if detect_face:
             image = mtcnn.align_and_take_one(image)
         if image == None:
             continue
         # image = image_resize(image, new_width=112, new_height=112)
-        image= image.resize((112, 112), Image.ANTIALIAS)
-        
+        image = image.resize((112, 112), Image.ANTIALIAS)
+
         if not os.path.isdir(new_parent_dir):
             # os.makedirs(new_parent_dir)
             Path(new_parent_dir).mkdir(parents=True, exist_ok=True)
 
         nameImage = os.path.split(imageFile)[1]
-        
+
         new_image_path = os.path.join(new_parent_dir, nameImage)
         # cv.imwrite(new_image_path, image)
         image.save(new_image_path)
         line = {"img": new_image_path, "label": id_label}
 
         samples.append(line)
-        
+
         # print(f"Line data: {line}")
     return samples, label
 
 # BASE_DATA/
 #     1.jpg
 #     2.jpg
+
 
 def create_pickle_type2(num_sample=-1):
     conf = get_config()
@@ -162,7 +168,7 @@ def create_pickle_type2(num_sample=-1):
     arr_path = glob.glob(f'{conf.raw_data}/*.jpg')
     print(f"[INFO] num data: {len(arr_path)}")
     arr_path.sort(key=lambda x: int(os.path.basename(x).replace(".jpg", "")))
-    
+
     for path in tqdm.tqdm(arr_path[:10000]):
         filename = os.path.basename(path)
         label = filename.replace(".jpg", "")
@@ -175,7 +181,7 @@ def create_pickle_type2(num_sample=-1):
 
         if not os.path.isdir(conf.processed_data):
             os.mkdir(conf.processed_data)
-        
+
         new_image_path = os.path.join(conf.processed_data, filename)
         cv.imwrite(new_image_path, image)
 
@@ -184,7 +190,7 @@ def create_pickle_type2(num_sample=-1):
 
         samples.append(line)
         class_ids.add(label)
-    
+
     print(f"[INFO] Num sample: {len(samples)}")
     print(f"[INFO] Num class: {len(class_ids)}")
     # print(samples)
@@ -198,8 +204,7 @@ def create_pickle_type2(num_sample=-1):
     print(max(class_ids))
 
 
-
-def image_resize(image, new_width = None, new_height = None, inter = cv.INTER_AREA):
+def image_resize(image, new_width=None, new_height=None, inter=cv.INTER_AREA):
     dim = None
     (h, w) = image.shape[:2]
 
@@ -221,15 +226,16 @@ def image_resize(image, new_width = None, new_height = None, inter = cv.INTER_AR
         # dimensions
         r = new_width / float(w)
         dim = (new_width, int(h * r))
-    
+
     else:
         dim = (new_width, new_height)
-    
+
     # resize the image
-    resized = cv.resize(image, dim, interpolation = inter)
+    resized = cv.resize(image, dim, interpolation=inter)
 
     # return the resized image
     return resized
+
 
 if __name__ == "__main__":
     # create_pickle_base()
