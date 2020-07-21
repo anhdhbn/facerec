@@ -173,15 +173,26 @@ class InferenceDataset(Dataset):
     def __init__(self, list_path_images):
         self.conf = get_config() 
         self.list_path_images = list_path_images           
-        self.transformer = data_transforms['val']
+        self.transformer = trans.Compose([
+            trans.ToTensor(),
+            trans.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
+        ])
+
+        self.transformer2 = trans.Compose([
+            trans.functional.hflip,
+            trans.ToTensor(),
+            trans.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
+        ])
 
     def __getitem__(self, i):
         path1, path2 = self.list_path_images[i]
         img1 = Image.open(path1).convert('RGB').resize((112, 112), Image.ANTIALIAS)
         img2 = Image.open(path2).convert('RGB').resize((112, 112), Image.ANTIALIAS)
+        mirror1 = self.transformer2(img1)
+        mirror2 = self.transformer2(img2)
         img1 = self.transformer(img1)
         img2 = self.transformer(img2)
-        return img1, img2 
+        return img1, img2, mirror1, mirror2
 
     def __len__(self):
         return len(self.list_path_images)

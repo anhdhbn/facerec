@@ -10,10 +10,12 @@ import numpy as np
 conf = get_config(False)
 list_label_folder = glob(f"{conf.infer_dataset}/*")
 
+list_label_folder = [folder for folder in list_label_folder if len(glob(f"{folder}/*")) != 0]
+
 
 all_intra_pairs, all_inter_pairs, y_pred = [], [], np.array([])
 
-for path in list_label_folder[:10]:
+for path in list_label_folder:
     intra_pairs = get_pairs_intra_label(path)
     all_intra_pairs += intra_pairs
     all_inter_pairs += get_pairs_inter_label(path, list_label_folder, intra_pairs)
@@ -47,5 +49,5 @@ y_true = np.concatenate((np.zeros(len(diff1),dtype=bool) , np.ones(len(similar1)
 
 y_pred = get_pred(diff1, similar1, 1.2)
 
-print(y_pred)
+# print(y_pred)
 

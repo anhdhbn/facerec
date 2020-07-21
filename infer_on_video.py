@@ -69,7 +69,7 @@ while(cap.isOpened()):
     ret, frame = cap.read()
     if ret == True:
         image = Image.fromarray(frame)
-        bboxes, faces = mtcnn.align_multi(image,None, 30)
+        bboxes, faces = mtcnn.align_multi(image,None, 16)
         if len(bboxes) == 0:
             print('no face')
             continue

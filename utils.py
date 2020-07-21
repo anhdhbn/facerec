@@ -224,8 +224,18 @@ def findDistance(a, b):
     '''
     return np.linalg.norm(a-b)
 
+def get_embed_imgs(imgs,mirrors, learner, tta=False):
+    embeddings = learner.model(imgs).cpu().detach().numpy()
+    if tta:
+        embeddings += learner.model(mirrors).cpu().detach().numpy()
+    return embeddings
+    # img = Image.open(img_path).convert('RGB').resize((112, 112), Image.ANTIALIAS)
+    # mirror = trans.functional.hflip(img)
+    # emb = learner.model(conf.test_transform(img).to(conf.device).unsqueeze(0))
+    # emb_mirror = learner.model(conf.test_transform(mirror).to(conf.device).unsqueeze(0))
+    # return l2_norm(emb + emb_mirror)
 
-def calc_diff_and_similar(all_inter_pairs, all_intra_pairs,conf ,learner, func_find_diff=findDistance_cos, numtake=None):
+def calc_diff_and_similar(all_inter_pairs, all_intra_pairs,conf ,learner, func_find_diff=findDistance_cos, numtake=None, tta=False):
     similar, diff = [], []
     # for imgs, labels in tqdm(iter(self.train_loader)):
     # all_inter_pairs[:numtake]
@@ -236,24 +246,27 @@ def calc_diff_and_similar(all_inter_pairs, all_intra_pairs,conf ,learner, func_f
     loader_intra = DataLoader(ds_intra, batch_size=conf.batchsize_infer, shuffle=False)
     learner.model.eval()
 
-    for img1s, img2s in tqdm(iter(loader_inter)):
+    for img1s, img2s, mirror1, mirror2 in tqdm(iter(loader_inter)):
         imgs = img1s.to(conf.device)
-        embeddings1 = learner.model(imgs).cpu().detach().numpy()
+        mirror = mirror1.to(conf.device)
+        embeddings1 = get_embed_imgs(imgs, mirror, learner, tta=tta)
 
         imgs = img2s.to(conf.device)
-        embeddings2 = learner.model(imgs).cpu().detach().numpy()
+        mirror = mirror2.to(conf.device)
+        embeddings2 = get_embed_imgs(imgs, mirror, learner, tta=tta)
         # diff = [func_find_diff(emb1, emb2) for emb1, emb2 in zip(embeddings1, embeddings2)]
         for idx in range(len(embeddings1)):
             diff.append(func_find_diff(embeddings1[idx], embeddings2[idx]))
 
-    for img1s, img2s in tqdm(iter(loader_intra)):
+    for img1s, img2s, mirror1, mirror2 in tqdm(iter(loader_intra)):
         imgs = img1s.to(conf.device)
-        embeddings1 = learner.model(imgs).cpu().detach().numpy()
+        mirror = mirror1.to(conf.device)
+        embeddings1 = get_embed_imgs(imgs, mirror,learner, tta=tta)
 
         imgs = img2s.to(conf.device)
-        embeddings2 = learner.model(imgs).cpu().detach().numpy()
-
-        # similar = [func_find_diff(emb1, emb2) for emb1, emb2 in zip(embeddings1, embeddings2)]
+        mirror = mirror2.to(conf.device)
+        embeddings2 = get_embed_imgs(imgs, mirror, learner, tta=tta)
+        # diff = [func_find_diff(emb1, emb2) for emb1, emb2 in zip(embeddings1, embeddings2)]
         for idx in range(len(embeddings1)):
             similar.append(func_find_diff(embeddings1[idx], embeddings2[idx]))
 

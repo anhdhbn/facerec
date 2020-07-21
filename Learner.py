@@ -314,7 +314,7 @@ class face_learner(object):
         # print(f"[INFO] embedding from images: {source_embs.shape}")
 
         diff = source_embs.unsqueeze(-1).to(conf.device) - target_embs.transpose(1,0).unsqueeze(0).to(conf.device)
-        # print(f"[INFO] Diff: {diff.shape}")
+        print(f"[INFO] Diff: {diff.shape} = {source_embs.unsqueeze(-1).shape} - {target_embs.transpose(1,0).unsqueeze(0).shape}")
         dist = torch.sum(torch.pow(diff, 2), dim=1)
         # print(f"[INFO] Calclulate distance between pred_emb and targer_emb: {dist}")
         minimum, min_idx = torch.min(dist, dim=1)
