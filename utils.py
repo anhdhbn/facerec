@@ -63,7 +63,7 @@ def prepare_facebank(conf, model, mtcnn, tta = True):
                             emb = model(conf.test_transform(img).to(conf.device).unsqueeze(0))
                             emb_mirror = model(conf.test_transform(mirror).to(conf.device).unsqueeze(0))
                             embs.append(l2_norm(emb + emb_mirror))
-                        else:                        
+                        else:
                             embs.append(model(conf.test_transform(img).to(conf.device).unsqueeze(0)))
         if len(embs) == 0:
             continue
@@ -87,30 +87,31 @@ def face_reader(conf, conn, flag, boxes_arr, result_arr, learner, mtcnn, targets
             image = conn.recv()
         except:
             continue
-        try:            
+        try:
             bboxes, faces = mtcnn.align_multi(image, limit=conf.face_limit)
         except:
             bboxes = []
-            
+            faces = []
+
         results = learner.infer(conf, faces, targets, tta)
-        
+
         if len(bboxes) > 0:
             print('bboxes in reader : {}'.format(bboxes))
             bboxes = bboxes[:,:-1] #shape:[10,4],only keep 10 highest possibiity faces
             bboxes = bboxes.astype(int)
-            bboxes = bboxes + [-1,-1,1,1] # personal choice            
+            bboxes = bboxes + [-1,-1,1,1] # personal choice
             assert bboxes.shape[0] == results.shape[0],'bbox and faces number not same'
             bboxes = bboxes.reshape([-1])
             for i in range(len(boxes_arr)):
                 if i < len(bboxes):
                     boxes_arr[i] = bboxes[i]
                 else:
-                    boxes_arr[i] = 0 
+                    boxes_arr[i] = 0
             for i in range(len(result_arr)):
                 if i < len(results):
                     result_arr[i] = results[i]
                 else:
-                    result_arr[i] = -1 
+                    result_arr[i] = -1
         else:
             for i in range(len(boxes_arr)):
                 boxes_arr[i] = 0 # by default,it's all 0
@@ -143,6 +144,7 @@ def gen_plot(fpr, tpr):
     plt.xlabel("FPR", fontsize=14)
     plt.ylabel("TPR", fontsize=14)
     plt.title("ROC Curve", fontsize=14)
+
     plot = plt.plot(fpr, tpr, linewidth=2)
     buf = io.BytesIO()
     plt.savefig(buf, format='jpeg')
@@ -154,8 +156,8 @@ def draw_box_name(bbox,name,frame):
     frame = cv2.rectangle(frame,(bbox[0],bbox[1]),(bbox[2],bbox[3]),(0,0,255),6)
     frame = cv2.putText(frame,
                     name,
-                    (bbox[0],bbox[1]), 
-                    cv2.FONT_HERSHEY_SIMPLEX, 
+                    (bbox[0],bbox[1]),
+                    cv2.FONT_HERSHEY_SIMPLEX,
                     2,
                     (0,255,0),
                     3,
@@ -292,7 +294,7 @@ def calc_embed_bank(image_paths, learner, conf):
         else: embeddings = numpy.concatenate((embeddings, tmp), axis=0)
         labels += label
         # print(embeddings.shape, len(labels))
-    
+
     return embeddings, labels
 
 def load_face_bank_cus(conf):

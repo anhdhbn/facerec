@@ -45,7 +45,7 @@ range2 = [0.4, 0.7, 1]
 
 step = 0.1
 import numpy as np
-y_true = np.concatenate((np.zeros(len(diff1),dtype=bool) , np.ones(len(similar1), dtype=bool)), axis=0) 
+y_true = np.concatenate((np.zeros(len(diff1),dtype=bool) , np.ones(len(similar1), dtype=bool)), axis=0)
 
 y_pred = get_pred(diff1, similar1, 1.2)
 
