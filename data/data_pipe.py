@@ -1,24 +1,24 @@
+from config import get_config
+import os
+from tqdm import tqdm
+import mxnet as mx
+import torch
+import pickle
+import bcolz
+import cv2
+import numpy as np
 from pathlib import Path
 from torch.utils.data import Dataset, ConcatDataset, DataLoader
 from torchvision import transforms as trans
 from torchvision.datasets import ImageFolder
 from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
-import numpy as np
-import cv2
-import bcolz
-import pickle
-import torch
-import mxnet as mx
-from tqdm import tqdm
-import os
-from pathlib import Path
 
-from config import get_config
 
 def de_preprocess(tensor):
     return tensor*0.5 + 0.5
-    
+
+
 def get_train_dataset(imgs_folder):
     train_transform = trans.Compose([
         trans.RandomHorizontalFlip(),
@@ -29,19 +29,22 @@ def get_train_dataset(imgs_folder):
     class_num = ds[-1][1] + 1
     return ds, class_num
 
+
 def get_val_loader(conf):
     ds = AilabFaceDataset('val')
-    loader = DataLoader(ds, batch_size=conf.batch_size, shuffle=True, pin_memory=conf.pin_memory, num_workers=conf.num_workers)
+    loader = DataLoader(ds, batch_size=conf.batch_size, shuffle=True,
+                        pin_memory=conf.pin_memory, num_workers=conf.num_workers)
     return loader
+
 
 def get_train_loader(conf):
     class_num = 0
     ds = None
-    
+
     if conf.data_mode == 'ailab':
         ds = AilabFaceDataset('train')
         class_num = ds.num_classes()
-        
+
         # ds, class_num = get_train_dataset(conf.processed_data)
         print(f"[INFO] Num class: {class_num}")
 
@@ -50,7 +53,7 @@ def get_train_loader(conf):
         print('ms1m loader generated')
     if conf.data_mode in ['vgg', 'concat']:
         vgg_ds, vgg_class_num = get_train_dataset(conf.vgg_folder/'imgs')
-        print('vgg loader generated')        
+        print('vgg loader generated')
     if conf.data_mode == 'vgg':
         ds = vgg_ds
         class_num = vgg_class_num
@@ -58,25 +61,28 @@ def get_train_loader(conf):
         ds = ms1m_ds
         class_num = ms1m_class_num
     elif conf.data_mode == 'concat':
-        for i,(url,label) in enumerate(vgg_ds.imgs):
+        for i, (url, label) in enumerate(vgg_ds.imgs):
             vgg_ds.imgs[i] = (url, label + ms1m_class_num)
-        ds = ConcatDataset([ms1m_ds,vgg_ds])
+        ds = ConcatDataset([ms1m_ds, vgg_ds])
         class_num = vgg_class_num + ms1m_class_num
     elif conf.data_mode == 'emore':
         ds, class_num = get_train_dataset(conf.emore_folder/'imgs')
 
-    loader = DataLoader(ds, batch_size=conf.batch_size, shuffle=True, pin_memory=conf.pin_memory, num_workers=conf.num_workers)
+    loader = DataLoader(ds, batch_size=conf.batch_size, shuffle=True,
+                        pin_memory=conf.pin_memory, num_workers=conf.num_workers)
 
-    return loader, class_num 
+    return loader, class_num
 
 # def get_databank_loader(conf):
 #     ds = AilabFaceDataset('train')
-    
-def load_bin(path, rootdir, transform, image_size=[112,112]):
+
+
+def load_bin(path, rootdir, transform, image_size=[112, 112]):
     if not rootdir.exists():
         rootdir.mkdir()
     bins, issame_list = pickle.load(open(path, 'rb'), encoding='bytes')
-    data = bcolz.fill([len(bins), 3, image_size[0], image_size[1]], dtype=np.float32, rootdir=rootdir, mode='w')
+    data = bcolz.fill([len(bins), 3, image_size[0], image_size[1]],
+                      dtype=np.float32, rootdir=rootdir, mode='w')
     for i in range(len(bins)):
         _bin = bins[i]
         img = mx.image.imdecode(_bin).asnumpy()
@@ -89,10 +95,12 @@ def load_bin(path, rootdir, transform, image_size=[112,112]):
     np.save(str(rootdir)+'_list', np.array(issame_list))
     return data, issame_list
 
+
 def get_val_pair(path, name):
-    carray = bcolz.carray(rootdir = path/name, mode='r')
+    carray = bcolz.carray(rootdir=path/name, mode='r')
     issame = np.load(path/'{}_list.npy'.format(name))
     return carray, issame
+
 
 def get_val_data(data_path):
     agedb_30, agedb_30_issame = get_val_pair(data_path, 'agedb_30')
@@ -100,16 +108,18 @@ def get_val_data(data_path):
     lfw, lfw_issame = get_val_pair(data_path, 'lfw')
     return agedb_30, cfp_fp, lfw, agedb_30_issame, cfp_fp_issame, lfw_issame
 
+
 def load_mx_rec(rec_path):
     save_path = rec_path/'imgs'
     if not save_path.exists():
         save_path.mkdir()
-    imgrec = mx.recordio.MXIndexedRecordIO(str(rec_path/'train.idx'), str(rec_path/'train.rec'), 'r')
+    imgrec = mx.recordio.MXIndexedRecordIO(
+        str(rec_path/'train.idx'), str(rec_path/'train.rec'), 'r')
     img_info = imgrec.read_idx(0)
-    header,_ = mx.recordio.unpack(img_info)
+    header, _ = mx.recordio.unpack(img_info)
     # max_idx = int(header.label[0])
     max_idx = 10000
-    for idx in tqdm(range(1,max_idx)):
+    for idx in tqdm(range(1, max_idx)):
         img_info = imgrec.read_idx(idx)
         header, img = mx.recordio.unpack_img(img_info)
         label = int(header.label)
@@ -118,6 +128,7 @@ def load_mx_rec(rec_path):
         if not label_path.exists():
             label_path.mkdir()
         img.save(label_path/'{}.jpg'.format(idx), quality=95)
+
 
 data_transforms = {
     'train': trans.Compose([
@@ -135,6 +146,7 @@ data_transforms = {
     ]),
 }
 
+
 class AilabFaceDataset(Dataset):
     def __init__(self, split):
         conf = get_config()
@@ -143,9 +155,18 @@ class AilabFaceDataset(Dataset):
             with open(conf.pickle_train_images, 'rb') as file_images:
                 data = pickle.load(file_images)
         else:
-            with open(conf.pickle_val_images, 'rb') as file_images:
-                data = pickle.load(file_images)
-            
+            with open(conf.pickle_val_inter, 'rb') as file_images:
+                data_inter = pickle.load(file_images)
+
+            with open(conf.pickle_val_intra, 'rb') as file_images:
+                data_intra = pickle.load(file_images)
+
+            inter_issame = np.zeros((len(data_inter)))
+            intra_issame = np.ones((len(data_intra)))
+            data = data_inter + data_intra
+
+            self.issame = np.concatenate([inter_issame, intra_issame], axis=0)
+
         with open(conf.pickle_class_labels, 'rb') as file_labels:
             labels = pickle.load(file_labels)
         self.labels = labels
@@ -154,25 +175,36 @@ class AilabFaceDataset(Dataset):
         self.transformer = data_transforms['train']
 
     def __getitem__(self, i):
-        sample = self.samples[i]
-        # print(f"[INFO] Sample in get_item: {sample}")
-        filename = sample['img']
-        label = sample['label']
-
-        img = Image.open(filename)
-        img = self.transformer(img)
-
-        return img, label
+        if self.split == 'train':
+            sample = self.samples[i]
+            # print(f"[INFO] Sample in get_item: {sample}")
+            filename = sample['img']
+            label = sample['label']
+            img = Image.open(filename).convert(
+            'RGB').resize((112, 112), Image.ANTIALIAS)
+            img = self.transformer(img)
+            return img, label
+        else:
+            sample = self.samples[i]
+            img1 = Image.open(sample[0]).convert(
+            'RGB').resize((112, 112), Image.ANTIALIAS)
+            img2 = Image.open(sample[1]).convert(
+            'RGB').resize((112, 112), Image.ANTIALIAS)
+            img1 = self.transformer(img1)
+            img2 = self.transformer(img2)
+            return img1, img2, self.issame[i]
 
     def __len__(self):
         return len(self.samples)
 
     def num_classes(self):
         return len(self.labels)
+
+
 class InferenceDataset(Dataset):
     def __init__(self, list_path_images):
-        self.conf = get_config() 
-        self.list_path_images = list_path_images           
+        self.conf = get_config()
+        self.list_path_images = list_path_images
         self.transformer = trans.Compose([
             trans.ToTensor(),
             trans.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
@@ -186,8 +218,10 @@ class InferenceDataset(Dataset):
 
     def __getitem__(self, i):
         path1, path2 = self.list_path_images[i]
-        img1 = Image.open(path1).convert('RGB').resize((112, 112), Image.ANTIALIAS)
-        img2 = Image.open(path2).convert('RGB').resize((112, 112), Image.ANTIALIAS)
+        img1 = Image.open(path1).convert(
+            'RGB').resize((112, 112), Image.ANTIALIAS)
+        img2 = Image.open(path2).convert(
+            'RGB').resize((112, 112), Image.ANTIALIAS)
         mirror1 = self.transformer2(img1)
         mirror2 = self.transformer2(img2)
         img1 = self.transformer(img1)
@@ -197,15 +231,17 @@ class InferenceDataset(Dataset):
     def __len__(self):
         return len(self.list_path_images)
 
+
 class TestBankDataset(Dataset):
     def __init__(self, list_path_images):
-        self.conf = get_config() 
-        self.list_path_images = list_path_images           
+        self.conf = get_config()
+        self.list_path_images = list_path_images
         self.transformer = data_transforms['val']
 
     def __getitem__(self, i):
         path = self.list_path_images[i]
-        img = Image.open(path).convert('RGB').resize((112, 112), Image.ANTIALIAS)
+        img = Image.open(path).convert('RGB').resize(
+            (112, 112), Image.ANTIALIAS)
         return self.transformer(img), os.path.basename(Path(path).parent)
 
     def __len__(self):
@@ -225,10 +261,10 @@ class TestBankDataset(Dataset):
 #                 trans.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
 #             ])
 #         self.class_num = self.labels[-1] + 1
-        
+
 #     def __len__(self):
 #         return self.length
-    
+
 #     def __getitem__(self, index):
 #         img = torch.tensor(self.imgs[index+1], dtype=torch.float)
 #         label = torch.tensor(self.labels[index+1], dtype=torch.long)

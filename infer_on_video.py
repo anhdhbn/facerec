@@ -13,7 +13,7 @@ conf = get_config(False)
 
 mtcnn = MTCNN()
 print('mtcnn loaded')
-    
+
 learner = face_learner(conf, True)
 
 learner = face_learner(conf, True)
@@ -42,10 +42,10 @@ cap.set(cv2.CAP_PROP_POS_MSEC, 0)
 
 width, height = 112, 112
 fps = 10
-# Define the codec and create VideoWriter object 
+# Define the codec and create VideoWriter object
 fourcc = cv2.VideoWriter_fourcc(*'MP4V')
 
-if cap.isOpened(): 
+if cap.isOpened():
     width  = cap.get(cv2.CAP_PROP_FRAME_WIDTH)   # float
     height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)  # float
     fps = cap.get(cv2.CAP_PROP_FPS)
@@ -58,8 +58,8 @@ else:
 video_writer = cv2.VideoWriter(str(video_ouput_path), fourcc,  int(fps), (int(width),int(height)))
 
 # video_writer = cv2.VideoWriter(video_ouput_path, -1, 20.0, frameSize=(1280,720))
-# fourcc = cv2.VideoWriter_fourcc(*'XVID') 
-# video_writer =  cv2.VideoWriter('output.avi', fourcc, 29.0, (640, 480)) 
+# fourcc = cv2.VideoWriter_fourcc(*'XVID')
+# video_writer =  cv2.VideoWriter('output.avi', fourcc, 29.0, (640, 480))
 
 print(video_ouput_path)
 
@@ -76,7 +76,7 @@ while(cap.isOpened()):
         else:
             bboxes = bboxes[:,:-1] #shape:[10,4],only keep 10 highest possibiity faces
             bboxes = bboxes.astype(int)
-            bboxes = bboxes + [-1,-1,1,1] # personal choice   
+            bboxes = bboxes + [-1,-1,1,1] # personal choice
             results, score = learner.infer_cus(conf, faces, targets, True)
             # print(f"[INFO] Results idx name: {results}")
             # print(len(bboxes))
@@ -95,7 +95,7 @@ while(cap.isOpened()):
             break
 
     # Break the loop
-    else: 
+    else:
         break
 
 # When everything done, release the video capture object

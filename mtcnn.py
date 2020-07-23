@@ -18,7 +18,7 @@ class MTCNN():
         self.rnet.eval()
         self.onet.eval()
         self.refrence = get_reference_facial_points(default_square= True)
-        
+
     def align(self, img):
         _, landmarks = self.detect_faces(img)
         if len(landmarks) == 0:
@@ -46,7 +46,7 @@ class MTCNN():
         facial5points = [[landmarks[0][j],landmarks[0][j+5]] for j in range(5)]
         warped_face = warp_and_crop_face(np.array(img), facial5points, self.refrence, crop_size=(112,112))
         return Image.fromarray(warped_face)
-    
+
     def align_multi(self, img, limit=None, min_face_size=30.0):
         boxes, landmarks = self.detect_faces(img, min_face_size)
         if len(landmarks) == 0:
@@ -111,7 +111,7 @@ class MTCNN():
 
             # collect boxes (and offsets, and scores) from different scales
             bounding_boxes = [i for i in bounding_boxes if i is not None]
-            if len(bounding_boxes) == 0: 
+            if len(bounding_boxes) == 0:
                 return [], []
             bounding_boxes = np.vstack(bounding_boxes)
 
@@ -148,7 +148,7 @@ class MTCNN():
             # STAGE 3
 
             img_boxes = get_image_boxes(bounding_boxes, image, size=48)
-            if len(img_boxes) == 0: 
+            if len(img_boxes) == 0:
                 return [], []
             img_boxes = torch.FloatTensor(img_boxes).to(device)
             output = self.onet(img_boxes)
