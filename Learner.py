@@ -73,21 +73,21 @@ class face_learner(object):
         else:
             self.threshold = conf.threshold
 
-    def save_state(self, accuracy, to_save_folder=False, extra=None, model_only=False):
+    def save_state(self, accuracy, thresh, to_save_folder=False, extra=None, model_only=False):
         if to_save_folder:
             save_path = self.conf.save_path
         else:
             save_path = self.conf.model_path
         torch.save(
             self.model.state_dict(), save_path /
-            ('model_{}_accuracy:{}_step:{}_{}.pth'.format(get_time(), accuracy, self.step, extra)))
+            ('model_{}_accuracy:{}_thresh:{}_step:{}_{}.pth'.format(get_time(), accuracy, thresh, self.step, extra)))
         if not model_only:
             torch.save(
                 self.head.state_dict(), save_path /
-                ('head_{}_accuracy:{}_step:{}_{}.pth'.format(get_time(), accuracy, self.step, extra)))
+                ('head_{}_accuracy:{}_thresh:{}_step:{}_{}.pth'.format(get_time(), accuracy, thresh, self.step, extra)))
             torch.save(
                 self.optimizer.state_dict(), save_path /
-                ('optimizer_{}_accuracy:{}_step:{}_{}.pth'.format(get_time(), accuracy, self.step, extra)))
+                ('optimizer_{}_accuracy:{}_thresh:{}_step:{}_{}.pth'.format(get_time(), accuracy, thresh, self.step, extra)))
 
     def load_state(self, fixed_str, from_save_folder=True, model_only=False):
         if from_save_folder:
@@ -112,7 +112,6 @@ class face_learner(object):
 #         self.writer.add_scalar('{}_val:true accept ratio'.format(db_name), val, self.step)
 #         self.writer.add_scalar('{}_val_std'.format(db_name), val_std, self.step)
 #         self.writer.add_scalar('{}_far:False Acceptance Ratio'.format(db_name), far, self.step)
-
 
     def evaluate(self, carray, issame, nrof_folds=5, tta=False):
         self.model.eval()
@@ -236,13 +235,14 @@ class face_learner(object):
         roc_curve_tensor = trans.ToTensor()(roc_curve)
         # print(f"[INFO] Acc: {accuracy.mean()}");
         # print(f"[INFO] TF: {best_thresholds.mean()}");
-        return accuracy.mean(), best_thresholds.mean(), roc_curve_tensor, tpr, fpr
+        return accuracy.mean(), best_thresholds.mean(), roc_curve_tensor
 
     def train(self, epochs):
         self.model.train()
         running_loss = 0.
-        accuracy = 0
-        loss_board = 0
+        max_accuracy = 0.
+        best_threshold = 0.
+        loss_board = 0.
         for e in range(epochs):
             print('epoch {} started'.format(e))
             if e == self.milestones[0]:
@@ -278,19 +278,21 @@ class face_learner(object):
                     running_loss = 0.
 
                 if self.step % self.evaluate_every == 0 and self.step != 0:
-                    accuracy, best_threshold, roc_curve_tensor, tpr, fpr = self.evaluate_custom()
+                    accuracy, best_threshold, roc_curve_tensor = self.evaluate_custom()
                     print('\n Loss: {:.4f}, Accuracy: {:.4f}, Best_threshold: {:.4f}'.format(
                            loss_board, accuracy, best_threshold
                         ))
                     self.board_val('cfp_fp', accuracy, best_threshold, roc_curve_tensor)
-
+                    if max_accuracy < accuracy:
+                        max_accuracy = accuracy
+                        self.save_state(max_accuracy, best_threshold)
                     self.model.train()
 
-                if self.step % self.save_every == 0 and self.step != 0:
-                    self.save_state(accuracy)
+
+
 
                 self.step += 1
-        self.save_state(accuracy, to_save_folder=True, extra='final')
+        self.save_state(max_accuracy, best_threshold, to_save_folder=True, extra='final')
 
     def schedule_lr(self):
         for params in self.optimizer.param_groups:

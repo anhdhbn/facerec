@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="3f3748ac-cf1b-484f-b826-fcf47c6dcf65" name="Default Changelist" comment="Merge branch 'hoang' of github.com:anhdhbn/facerec into hoang&#10;&#10;# Conflicts:&#10;#&#9;config.py&#10;#&#9;pre_process.py&#10;#&#9;requirements.txt&#10;#&#9;train.py" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="1f65wjmJ5zk7X5rSvSm6mDCL0qZ" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="3f3748ac-cf1b-484f-b826-fcf47c6dcf65" name="Default Changelist" comment="" />
+      <created>1595525941561</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1595525941561</updated>
+      <workItem from="1595525948024" duration="28000" />
+      <workItem from="1595525977884" duration="373000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="2" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Merge branch 'hoang' of github.com:anhdhbn/facerec into hoang&#10;&#10;# Conflicts:&#10;#&#9;config.py&#10;#&#9;pre_process.py&#10;#&#9;requirements.txt&#10;#&#9;train.py" />
+    <option name="LAST_COMMIT_MESSAGE" value="Merge branch 'hoang' of github.com:anhdhbn/facerec into hoang&#10;&#10;# Conflicts:&#10;#&#9;config.py&#10;#&#9;pre_process.py&#10;#&#9;requirements.txt&#10;#&#9;train.py" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="743" y="311" width="424" height="491" key="FileChooserDialogImpl" timestamp="1595525972759">
+      <screen x="0" y="27" width="1920" height="1053" />
+    </state>
+    <state x="743" y="311" width="424" height="491" key="FileChooserDialogImpl/0.27.1920.1053@0.27.1920.1053" timestamp="1595525972759" />
+    <state x="591" y="315" width="728" height="482" key="MultipleFileMergeDialog" timestamp="1595526050285">
+      <screen x="0" y="27" width="1920" height="1053" />
+    </state>
+    <state x="591" y="315" width="728" height="482" key="MultipleFileMergeDialog/0.27.1920.1053@0.27.1920.1053" timestamp="1595526050285" />
+    <state x="555" y="289" width="800" height="535" key="Vcs.Push.Dialog.v2" timestamp="1595526124844">
+      <screen x="0" y="27" width="1920" height="1053" />
+    </state>
+    <state x="555" y="289" width="800" height="535" key="Vcs.Push.Dialog.v2/0.27.1920.1053@0.27.1920.1053" timestamp="1595526124844" />
+    <state x="731" y="468" width="448" height="177" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1595526043431">
+      <screen x="0" y="27" width="1920" height="1053" />
+    </state>
+    <state x="731" y="468" width="448" height="177" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.27.1920.1053@0.27.1920.1053" timestamp="1595526043431" />
+    <state x="656" y="341" width="597" height="430" key="git4idea.merge.GitPullDialog" timestamp="1595526075488">
+      <screen x="0" y="27" width="1920" height="1053" />
+    </state>
+    <state x="656" y="341" width="597" height="430" key="git4idea.merge.GitPullDialog/0.27.1920.1053@0.27.1920.1053" timestamp="1595526075488" />
+  </component>
+</project>
