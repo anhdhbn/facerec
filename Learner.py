@@ -12,7 +12,7 @@ from torch import optim
 import torch
 from verifacation import evaluate, evaluate_custom
 from model import Backbone, Arcface, MobileFaceNet, Am_softmax, l2_norm
-from data.data_pipe import de_preprocess, get_train_loader, get_val_loader, get_val_data
+from data.data_pipe import de_preprocess, get_train_loader, get_val_loader, get_val_data, get_val_pair
 plt.switch_backend('agg')
 
 
@@ -35,7 +35,9 @@ class face_learner(object):
             self.train_loader, self.class_num = get_train_loader(conf)
             if self.val_custom:
                 self.val_loader = get_val_loader(conf)
-
+            else:
+                # self.agedb_30, self.cfp_fp, self.lfw, self.agedb_30_issame, self.cfp_fp_issame, self.lfw_issame = get_val_data(self.train_loader.dataset.root.parent)
+                self.lfw, self.lfw_issame = get_val_pair(conf.emore_folder, 'lfw')
             self.writer = SummaryWriter(conf.log_path)
             self.step = 0
             self.head = Arcface(embedding_size=conf.embedding_size,
@@ -67,11 +69,11 @@ class face_learner(object):
             if (self.board_loss_every < 5):
                 self.board_loss_every = 5
             print(f"[INFO] Board loss every: {self.board_loss_every}")
-            self.evaluate_every = len(self.train_loader)//4
+            self.evaluate_every = len(self.train_loader)//2
             print(f"[INFO] Evaluate every: {self.evaluate_every}")
             self.save_every = len(self.train_loader)//4
             print(f"[INFO] Save every: {self.save_every}")
-            # self.agedb_30, self.cfp_fp, self.lfw, self.agedb_30_issame, self.cfp_fp_issame, self.lfw_issame = get_val_data(self.train_loader.dataset.root.parent)
+            
         else:
             self.threshold = conf.threshold
 
@@ -127,7 +129,7 @@ class face_learner(object):
                     fliped = hflip_batch(batch)
                     emb_batch = self.model(
                         batch.to(self.conf.device)) + self.model(fliped.to(self.conf.device))
-                    embeddings[idx:idx + self.conf.batch_size] = l2_norm(emb_batch)
+                    embeddings[idx:idx + self.conf.batch_size] = l2_norm(emb_batch.cpu())
                 else:
                     embeddings[idx:idx +
                                self.conf.batch_size] = self.model(batch.to(self.conf.device)).cpu()
@@ -138,7 +140,7 @@ class face_learner(object):
                     fliped = hflip_batch(batch)
                     emb_batch = self.model(
                         batch.to(self.conf.device)) + self.model(fliped.to(self.conf.device))
-                    embeddings[idx:] = l2_norm(emb_batch)
+                    embeddings[idx:] = l2_norm(emb_batch.cpu())
                 else:
                     embeddings[idx:] = self.model(batch.to(self.conf.device)).cpu()
         tpr, fpr, accuracy, best_thresholds = evaluate(
@@ -282,6 +284,12 @@ class face_learner(object):
                 if self.step % self.evaluate_every == 0 and self.step != 0:
                     if self.val_custom:
                         accuracy, best_threshold, roc_curve_tensor, tpr, fpr = self.evaluate_custom()
+                        print('\n Loss: {:.4f}, Accuracy: {:.4f}, Best_threshold: {:.4f}'.format(
+                            loss_board, accuracy, best_threshold
+                            ))
+                        self.board_val('cfp_fp', accuracy, best_threshold, roc_curve_tensor)
+                    else:
+                        accuracy, best_threshold, roc_curve_tensor = self.evaluate(self.lfw, self.lfw_issame, nrof_folds=10, tta=True)
                         print('\n Loss: {:.4f}, Accuracy: {:.4f}, Best_threshold: {:.4f}'.format(
                             loss_board, accuracy, best_threshold
                             ))

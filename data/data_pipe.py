@@ -79,7 +79,7 @@ def get_train_loader(conf):
 
 def load_bin(path, rootdir, transform, image_size=[112, 112]):
     if not rootdir.exists():
-        rootdir.mkdir()
+        Path(rootdir).mkdir(parents=True, exist_ok=True)
     bins, issame_list = pickle.load(open(path, 'rb'), encoding='bytes')
     data = bcolz.fill([len(bins), 3, image_size[0], image_size[1]],
                       dtype=np.float32, rootdir=rootdir, mode='w')
