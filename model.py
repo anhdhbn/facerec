@@ -382,10 +382,10 @@ class CurricularFace(Module):
         final_target_logit = torch.where(
             target_logit > self.threshold, cos_theta_m, target_logit - self.mm)
 
-        hard_example = cos_theta[mask]s
+        hard_example = cos_theta[mask]
         with torch.no_grad():
             self.t = target_logit.mean() * 0.01 + (1 - 0.01) * self.t
         cos_theta[mask] = hard_example * (self.t + hard_example)
         cos_theta.scatter_(1, label.view(-1, 1).long(), final_target_logit)
         output = cos_theta * self.s
-        return output, origin_cos * self.s
+        return output  # , origin_cos * self.s

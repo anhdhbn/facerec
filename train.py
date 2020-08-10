@@ -7,7 +7,7 @@ import argparse
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='for face verification')
     parser.add_argument(
-        "-e", "--epochs", help="training epochs", default=32, type=int)
+        "-e", "--epochs", help="training epochs", default=30, type=int)
     parser.add_argument(
         "-net", "--net_mode", help="which network, [ir, ir_se, mobilefacenet]", default='ir_se', type=str)
     parser.add_argument("-depth", "--net_depth",
@@ -15,11 +15,11 @@ if __name__ == '__main__':
     parser.add_argument('-lr', '--lr', help='learning rate',
                         default=1e-3, type=float)
     parser.add_argument("-b", "--batch_size",
-                        help="batch_size", default=20, type=int)
+                        help="batch_size", default=8, type=int)
     parser.add_argument("-w", "--num_workers",
                         help="workers number", default=4, type=int)
     parser.add_argument(
-        "-d", "--data_mode", help="use which database, [vgg, ms1m, emore, concat, ailab]", default='ailab', type=str)
+        "-d", "--data_mode", help="use which database, [vgg, ms1m, emore, concat, ailab, celeb]", default='ailab', type=str)
     args = parser.parse_args()
 
     conf = get_config()
@@ -35,7 +35,6 @@ if __name__ == '__main__':
     conf.num_workers = args.num_workers
     conf.data_mode = args.data_mode
     learner = face_learner(conf)
-    learner.load_state('ir_se50.pth', model_only=True, from_save_folder=True)
-    # learner.load_state('2020-07-23-14-48_accuracy:0.9325001033237174_step:309_None.pth', model_only=False, from_save_folder=False)
     learner.train(args.epochs)
+    learner.load_state('ir_se50.pth', from_save_folder=True, model_only=True)
     # learner.evaluate_custom()

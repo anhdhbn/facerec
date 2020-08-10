@@ -1,0 +1,4 @@
+                                    data( image from identity)
+            detect_face         ->       recognize_face   (web)    camera
+        (mtcnn, harcascade)                 (loss: ArcFace)
+                                            (embedding: resnet50)

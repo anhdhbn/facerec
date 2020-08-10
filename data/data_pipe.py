@@ -12,6 +12,7 @@ from torch.utils.data import Dataset, ConcatDataset, DataLoader
 from torchvision import transforms as trans
 from torchvision.datasets import ImageFolder
 from PIL import Image, ImageFile
+import random
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
@@ -44,9 +45,12 @@ def get_train_loader(conf):
     if conf.data_mode == 'ailab':
         ds = AilabFaceDataset('train')
         class_num = ds.num_classes()
-
         # ds, class_num = get_train_dataset(conf.processed_data)
         print(f"[INFO] Num class: {class_num}")
+
+    if conf.data_mode == 'celeb':
+        ds = CelebFaceDataset('train')
+        class_num = len(os.listdir(conf.train_path))
 
     if conf.data_mode in ['ms1m', 'concat']:
         ms1m_ds, ms1m_class_num = get_train_dataset(conf.ms1m_folder/'imgs')
@@ -142,7 +146,7 @@ data_transforms = {
     ]),
     'val': trans.Compose([
         trans.ToTensor(),
-        trans.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        trans.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
     ]),
 }
 
@@ -154,12 +158,15 @@ class AilabFaceDataset(Dataset):
         if split == "train":
             with open(conf.pickle_train_images, 'rb') as file_images:
                 data = pickle.load(file_images)
+                file_images.close()
         else:
             with open(conf.pickle_val_inter, 'rb') as file_images:
                 data_inter = pickle.load(file_images)
+                file_images.close()
 
             with open(conf.pickle_val_intra, 'rb') as file_images:
                 data_intra = pickle.load(file_images)
+                file_images.close()
 
             inter_issame = np.zeros((len(data_inter)))
             intra_issame = np.ones((len(data_intra)))
@@ -181,15 +188,15 @@ class AilabFaceDataset(Dataset):
             filename = sample['img']
             label = sample['label']
             img = Image.open(filename).convert(
-            'RGB').resize((112, 112), Image.ANTIALIAS)
+                'RGB').resize((112, 112), Image.ANTIALIAS)
             img = self.transformer(img)
             return img, label
         else:
             sample = self.samples[i]
             img1 = Image.open(sample[0]).convert(
-            'RGB').resize((112, 112), Image.ANTIALIAS)
+                'RGB').resize((112, 112), Image.ANTIALIAS)
             img2 = Image.open(sample[1]).convert(
-            'RGB').resize((112, 112), Image.ANTIALIAS)
+                'RGB').resize((112, 112), Image.ANTIALIAS)
             img1 = self.transformer(img1)
             img2 = self.transformer(img2)
             return img1, img2, self.issame[i]
@@ -199,6 +206,70 @@ class AilabFaceDataset(Dataset):
 
     def num_classes(self):
         return len(self.labels)
+
+
+class CelebFaceDataset(Dataset):
+    def __init__(self, split):
+        conf = get_config()
+        data = None
+        if split == "train":
+            with open(conf.pickle_train_images, 'rb') as file_images:
+                data = pickle.load(file_images)
+                file_images.close()
+        else:
+            with open(conf.pickle_val_inter, 'rb') as file_images:
+                data_inter = pickle.load(file_images)
+                file_images.close()
+
+            with open(conf.pickle_val_intra, 'rb') as file_images:
+                data_intra = pickle.load(file_images)
+                file_images.close()
+
+            data_inter = mylist = list(dict.fromkeys(data_inter))
+            data_intra = mylist = list(dict.fromkeys(data_intra))
+            inter_issame = np.zeros((len(data_inter)))
+            intra_issame = np.ones((len(data_intra)))
+            data = data_inter + data_intra
+
+            self.issame = np.concatenate([inter_issame, intra_issame], axis=0)
+            term = list(zip(data, self.issame))
+            random.shuffle(term)
+            data, self.issame = zip(*term)
+
+        with open(conf.pickle_class_labels, 'rb') as file_labels:
+            labels = pickle.load(file_labels)
+        self.labels = labels
+
+        self.split = split
+        self.samples = data
+        self.transformer = data_transforms['train']
+
+    def __getitem__(self, i):
+        if self.split == 'train':
+            sample = self.samples[i]
+            # print(f"[INFO] Sample in get_item: {sample}")
+            filename = sample['img']
+            ids = sample['label']
+            img = Image.open(filename).convert(
+                'RGB').resize((112, 112), Image.ANTIALIAS)
+            img = self.transformer(img)
+            # print('[INFO] self.labels[ids]: ', self.labels[str(ids)])
+            return img, self.labels[str(ids)]
+        else:
+            sample = self.samples[i]
+            img1 = Image.open(sample[0]['img']).convert(
+                'RGB').resize((112, 112), Image.ANTIALIAS)
+            img2 = Image.open(sample[1]['img']).convert(
+                'RGB').resize((112, 112), Image.ANTIALIAS)
+            img1 = self.transformer(img1)
+            img2 = self.transformer(img2)
+            return img1, img2, self.issame[i]
+
+    def __len__(self):
+        return len(self.samples)
+
+    def num_classes(self):
+        return len(list(self.labels.values()))
 
 
 class InferenceDataset(Dataset):

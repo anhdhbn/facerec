@@ -19,7 +19,9 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3f3748ac-cf1b-484f-b826-fcf47c6dcf65" name="Default Changelist" comment="Merge branch 'hoang' of github.com:anhdhbn/facerec into hoang&#10;&#10;# Conflicts:&#10;#&#9;config.py&#10;#&#9;pre_process.py&#10;#&#9;requirements.txt&#10;#&#9;train.py" />
+    <list default="true" id="3f3748ac-cf1b-484f-b826-fcf47c6dcf65" name="Default Changelist" comment="Merge branch 'hoang' of github.com:anhdhbn/facerec into hoang&#10;&#10;# Conflicts:&#10;#&#9;config.py&#10;#&#9;pre_process.py&#10;#&#9;requirements.txt&#10;#&#9;train.py">
+      <change beforePath="$PROJECT_DIR$/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/model.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -52,6 +54,7 @@
       <updated>1595525941561</updated>
       <workItem from="1595525948024" duration="28000" />
       <workItem from="1595525977884" duration="373000" />
+      <workItem from="1596190072450" duration="9000" />
     </task>
     <servers />
   </component>
@@ -68,6 +71,7 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Merge branch 'hoang' of github.com:anhdhbn/facerec into hoang&#10;&#10;# Conflicts:&#10;#&#9;config.py&#10;#&#9;pre_process.py&#10;#&#9;requirements.txt&#10;#&#9;train.py" />
