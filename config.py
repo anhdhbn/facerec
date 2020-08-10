@@ -10,10 +10,10 @@ def get_config(training=True):
     # conf.raw_data = Path("/media/ailab/DATA/FaceImages")
     conf.raw_data = Path("/media/ailab/DATA/facescrub2")
 
-    conf.dataset_name = "facescrub"
+    conf.dataset_name = "DeepGlint_processed"
     conf.dataset_ratio_val = 0.2
     # train val 80 20
-    conf.processed_data = Path("./pre_processed/")
+    conf.processed_data = Path("/media/2tb/DeepGlint/")
     conf.train_path = conf.processed_data/f'{conf.dataset_name}'/'train'
     conf.val_path = conf.processed_data/f'{conf.dataset_name}'/'val'
 

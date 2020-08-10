@@ -17,9 +17,10 @@ plt.switch_backend('agg')
 
 
 class face_learner(object):
-    def __init__(self, conf, inference=False):
+    def __init__(self, conf, inference=False, val_custom=True):
         print(conf)
         self.conf = conf
+        self.val_custom = val_custom
         if conf.use_mobilfacenet:
             self.model = MobileFaceNet(conf.embedding_size).to(conf.device)
             print('MobileFaceNet model generated')
@@ -32,7 +33,8 @@ class face_learner(object):
         if not inference:
             self.milestones = conf.milestones
             self.train_loader, self.class_num = get_train_loader(conf)
-            self.val_loader = get_val_loader(conf)
+            if self.val_custom:
+                self.val_loader = get_val_loader(conf)
 
             self.writer = SummaryWriter(conf.log_path)
             self.step = 0
@@ -278,11 +280,12 @@ class face_learner(object):
                     running_loss = 0.
 
                 if self.step % self.evaluate_every == 0 and self.step != 0:
-                    accuracy, best_threshold, roc_curve_tensor, tpr, fpr = self.evaluate_custom()
-                    print('\n Loss: {:.4f}, Accuracy: {:.4f}, Best_threshold: {:.4f}'.format(
-                           loss_board, accuracy, best_threshold
-                        ))
-                    self.board_val('cfp_fp', accuracy, best_threshold, roc_curve_tensor)
+                    if self.val_custom:
+                        accuracy, best_threshold, roc_curve_tensor, tpr, fpr = self.evaluate_custom()
+                        print('\n Loss: {:.4f}, Accuracy: {:.4f}, Best_threshold: {:.4f}'.format(
+                            loss_board, accuracy, best_threshold
+                            ))
+                        self.board_val('cfp_fp', accuracy, best_threshold, roc_curve_tensor)
 
                     self.model.train()
 

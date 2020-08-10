@@ -13,6 +13,7 @@ if __name__ == '__main__':
     parser.add_argument("-b", "--batch_size", help="batch_size", default=8, type=int)
     parser.add_argument("-w", "--num_workers", help="workers number", default=4, type=int)
     parser.add_argument("-d", "--data_mode", help="use which database, [vgg, ms1m, emore, concat, ailab]",default='ailab', type=str)
+    # parser.add_argument("-v", "--val_custom", help="use val custom? ",default=True, type=str)
     args = parser.parse_args()
 
     conf = get_config()
@@ -27,8 +28,8 @@ if __name__ == '__main__':
     conf.batch_size = args.batch_size
     conf.num_workers = args.num_workers
     conf.data_mode = args.data_mode
-    learner = face_learner(conf)
-    learner.load_state('ir_se50.pth', model_only=True, from_save_folder=True)
+    learner = face_learner(conf, val_custom=False)
+    # learner.load_state('ir_se50.pth', model_only=True, from_save_folder=True)
     # learner.load_state('2020-07-23-14-48_accuracy:0.9325001033237174_step:309_None.pth', model_only=False, from_save_folder=False)
     learner.train(args.epochs)
     # learner.evaluate_custom()
