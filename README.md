@@ -14,3 +14,7 @@
     train:
         model: resnet50 + arcface
         dataset: celebA or deeplign
+    research paper:
+        image pre-processing for face recognition
+        post processing for face recognition
+
