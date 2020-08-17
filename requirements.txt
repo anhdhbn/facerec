@@ -1,15 +1,15 @@
-torch==1.5.1
-numpy==1.19.0
-matplotlib==3.3.0
-tqdm==4.48.0
+torch
+numpy
+matplotlib
+tqdm
 # mxnet_cu90==1.2.1
-scipy==1.5.1
-bcolz==1.2.1
-easydict==1.9
-opencv_python==4.3.0.36
-Pillow==7.2.0
-mxnet==1.6.0
-scikit_learn==0.23.1
-tensorboardX==2.1
-torchvision==0.6.1
+scipy
+bcolz
+easydict
+opencv_python
+Pillow
+mxnet
+scikit_learn
+tensorboardX
+torchvision
 # requests==2.23 #for colab
