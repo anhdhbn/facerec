@@ -59,4 +59,4 @@
 >- Some images can not be detected.
 >- Discriminative power in inter is not enough: threshold ~ 1.22 while threshold in lwf, agedb, cfp is in [1.43, 1.65]. 
 >- Data augmentation is simple.
-
+>- Don't have pre-train model resnet100 (resnet100 is best model in ArcFace paper)
