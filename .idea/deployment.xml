@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" autoUpload="Always" serverName="hoangnv@118.70.181.146:6789:8080 agent" remoteFilesAllowedToDisappearOnAutoupload="false">
+    <serverData>
+      <paths name="hoangnv@118.70.181.146:6789:8080 agent">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/tmp/pycharm_project_552" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
+  </component>
+</project>
