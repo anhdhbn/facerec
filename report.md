@@ -1,4 +1,11 @@
 
+# Evaluate thier pre-trained model with some datasets
+>Download pretrained model:
+>- [Resnet50](https://onedrive.live.com/?authkey=%21AOw5TZL8cWlj10I&cid=CEC0E1F8F0542A13&id=CEC0E1F8F0542A13%21835&parId=root&action=defaultclick)
+>- [MobileNet](https://onedrive.live.com/?cid=cec0e1f8f0542a13&id=CEC0E1F8F0542A13%21836&authkey=!AIweh1IfiuF9vm4)
+
+<br /><br /><br />
+
 ### **Evaluate dataset with pre-trained model resnet50/mobilenet + ArcFace ( accuracy + best thresh hold)**  
 ****
 |           Dataset           | resnet50 + ArcFace | mobilenet + ArcFace |
@@ -45,4 +52,10 @@
 | :---------------------------------------: | :----------------------------: |
 | ![](./ROC_curve/inter_intra_distance.png) | ![](./ROC_curve/roc_curve.png) |
 |           best threshold: ~1.22           |                                |
+
+
+>Comment:
+>- Some images can not be detected.  
+>- Discriminative power in inter is not enough: threshold ~ 1.22 while threshold in lwf, agedb, cfp is in [1.43, 1.65]. 
+>- Data augmentation is simple.
 
