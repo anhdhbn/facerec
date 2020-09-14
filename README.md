@@ -163,19 +163,74 @@ python train.py -b [batch_size] -lr [learning rate] -e [epochs]
 
 # Report
 
-## Dataset (linhnv)
+## 1. Dataset (linhnv)
+- Training datasets:
 
-### Preprocess
+  | [DeepGlint](https://www.dropbox.com/s/4x39o2x40rewl5l/faces_glint.zip?dl=0)  | Ailab    | CelebA    |
+  | ---------- | -------- | --------- |
+  | 6.75M imgs | 50k imgs | 200k imgs |
+  | 181k ids   | 50k ids  | 10k ids   |
+  Another dataset can be download [here](https://github.com/deepinsight/insightface/wiki/Dataset-Zoo)
+- Validate datasets:
 
-### Description and visualization (amount, ratio intra/inter)
 
-### Generate intra inter class
+### 1.1. Preprocess
+- Tất cả ảnh training được lưu theo cấu trúc chung như sau:
+```
+Ailab_prepocessed
+│   faces_ailab_labels.pickle    
+│
+└───train
+│   │   faces_ailab_112x112.pickle
+│   │
+│   └───id_1
+│       │   img_1.jpg
+│       │   img_2.jpg
+│       │   ...
+│   
+└───val
+|   │   faces_ailab_112x112_inter.pickle
+|   │   faces_ailab_112x112_intra.pickle
+│   └───id_n
+│       │   img_1.jpg
+│       │   img_2.jpg
+│       │   ...
+```
 
-## Models (hoang)
+### 1.2. Description and visualization (amount, ratio intra/inter)
 
-## Experiments
+### 1.3. Generate intra inter class
 
-### Training
+## 2. Models (hoang)
+
+## 3. Experiments
+
+### 3.1. Setup environment ###
+
+### 3.2. Training
+*3.2.1 Chuẩn bị dữ liệu*
+
+**DeepGlint dataset:**
+- 1: [Download DeepGlint dataset.](https://www.dropbox.com/s/4x39o2x40rewl5l/faces_glint.zip?dl=0)
+- 2: Extract and run following code: 
+```
+python one_hit_prepare.py -r "path/to/deepGlint_extracted"
+```  
+> **NOTE**: Dữ liệu validate được tự động giải nén và lưu khi giải nén DeepGlint dataset theo dòng code 22 trong on_hit_prepare.py.
+
+**Ailab dataset:**
+
+Tất cả ảnh sẽ được chạy qua MTCNN và align để loại bỏ các ảnh quá xấu, bị nhiễu nặng hoặc không bao gồm mặt người. Sau đó ảnh sẽ được lưu lại với kịch thước 112x112. Do dữ liệu Ailab dataset chỉ có 1 mặt tương ứng mỗi người (id) do đó intra_pairs sẽ được tạo bằng cách biến đổi ảnh gốc với các phép biến đổi ảnh được class ImageDataGenerator của Keras cung cấp. Các cặp intra_pairs được tạo bằng 2 ảnh bất kỳ trong cùng một thư mục id, các cặp inter_pairs được tạo bằng 2 ảnh gốc chưa qua biến đổi.
+- 1. Giải nén dữ liệu.
+- 2. Chạy lệnh sau để tạo inter_pairs và intra_pairs:
+```
+python preprocess_ailab_img.py
+```
+> **NOTE**: Chú ý thay đúng đường dẫn đến thư mục từ dòng 109 đến 115
+
+**CelebA:**
+
+*3.2.2 Training*
 
 ### Post-processing
 
