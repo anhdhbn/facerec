@@ -79,7 +79,7 @@ def get_train_loader(conf):
 
 def load_bin(path, rootdir, transform, image_size=[112, 112]):
     if not rootdir.exists():
-        rootdir.mkdir()
+        rootdir.mkdir(parents=True, exist_ok=True)
     bins, issame_list = pickle.load(open(path, 'rb'), encoding='bytes')
     data = bcolz.fill([len(bins), 3, image_size[0], image_size[1]],
                       dtype=np.float32, rootdir=rootdir, mode='w')
@@ -128,6 +128,47 @@ def load_mx_rec(rec_path):
         if not label_path.exists():
             label_path.mkdir()
         img.save(label_path/'{}.jpg'.format(idx), quality=95)
+
+def load_mx_rec_custom(rec_path):
+    conf = get_config()
+    samples = []
+    class_ids = []
+    save_path = conf.train_path
+    
+    if not save_path.exists():
+        Path(save_path).mkdir(parents=True, exist_ok=True)
+    imgrec = mx.recordio.MXIndexedRecordIO(
+        str(rec_path/'train.idx'), str(rec_path/'train.rec'), 'r')
+    img_info = imgrec.read_idx(0)
+    header, _ = mx.recordio.unpack(img_info)
+    # max_idx = int(header.label[0])
+    min_idx = 1
+    max_idx = 1000
+
+    for idx in tqdm(range(min_idx, max_idx)):
+        img_info = imgrec.read_idx(idx)
+        header, img = mx.recordio.unpack_img(img_info)
+        label = int(header.label[0])
+        img = img[:,:,::-1]
+        img = Image.fromarray(img)
+        img = img.resize((112, 112), Image.ANTIALIAS)
+        label_path = save_path/str(label)
+        if not label_path.exists():
+            Path(label_path).mkdir(parents=True, exist_ok=True)
+        new_image_path = label_path/'{}.jpg'.format(idx)
+        img.save(new_image_path, quality=95)
+
+        line = {"img": new_image_path, "label": label}
+        samples.append(line)
+        class_ids.append(label)
+
+    with open(conf.pickle_train_images, 'wb') as file_train_images:
+        pickle.dump(samples, file_train_images)
+
+    class_ids = list(set(class_ids))
+
+    with open(conf.pickle_class_labels, 'wb') as file_train_images:
+        pickle.dump(class_ids, file_train_images)
 
 
 data_transforms = {
