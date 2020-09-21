@@ -124,7 +124,7 @@ class face_learner(object):
                 if tta:
                     fliped = hflip_batch(batch)
                     emb_batch = self.model(
-                        batch.to(self.conf.device)) + self.model(fliped.to(self.conf.device))
+                        batch.to(self.conf.device)).cpu() + self.model(fliped.to(self.conf.device)).cpu()
                     embeddings[idx:idx + self.conf.batch_size] = l2_norm(emb_batch)
                 else:
                     embeddings[idx:idx +
@@ -135,7 +135,7 @@ class face_learner(object):
                 if tta:
                     fliped = hflip_batch(batch)
                     emb_batch = self.model(
-                        batch.to(self.conf.device)) + self.model(fliped.to(self.conf.device))
+                        batch.to(self.conf.device)).cpu() + self.model(fliped.to(self.conf.device)).cpu()
                     embeddings[idx:] = l2_norm(emb_batch)
                 else:
                     embeddings[idx:] = self.model(batch.to(self.conf.device)).cpu()
