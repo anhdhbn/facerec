@@ -42,15 +42,28 @@ Pytorch0.4.1 codes for InsightFace
 Provide the face images your want to detect in the data/face_bank folder, and guarantee it have a structure like following:
 
 ```
-data/facebank/
-        ---> id1/
-            ---> id1_1.jpg
-        ---> id2/
-            ---> id2_1.jpg
-        ---> id3/
-            ---> id3_1.jpg
-           ---> id3_2.jpg
-```
+Dataset/
+        ---> Người(>7 tuổi)/
+            ---> Nguyen Van A
+                ---> Ảnh 1.jpg
+                ---> Ảnh 2.jpg
+                    ...
+            ---> Nguyen Van B
+                ---> Ảnh 1.jpg
+                ---> Ảnh 2.jpg
+                    ---
+            ............
+        ---> Trẻ con(<=7 tuổi)/
+            ---> Tran thi H
+                ---> Ảnh 1.jpg
+                ---> Ảnh 2.jpg
+                    ...
+            ---> Nguyen Thu T
+                ---> Ảnh 1.jpg
+                ---> Ảnh 2.jpg
+                    ---
+            ............
+``` 
 
 #### 3.1.2 download the pretrained model to work_space/model
 
