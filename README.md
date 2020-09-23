@@ -49,3 +49,17 @@
 - evaluate own model.
 
 3. develop model come face detection system.
+
+## Dataset Requirements
+
+1. Structure
+   - 1 folder contains 2 folder (nguoi lon >7, tre con <=7)
+   - each folder contains n identity folders
+   - each identity folder contains m images (min m = 5)
+2. Image
+   - anh chan dung: min size / max size / ratio(x, h)
+   - ti le mat so voi ca anh / theo pixel(min 112x112)
+   - huong mat: dep-chinh dien(<30degree so voi huong camera )
+   - anh sang, mau sac, deo kinh, khau trang
+   - do nhieu: anh mo, scan, ..
+   - ti le nam / nu = 1/1, nguoi (>7 tuoi) / nguoi (<7 ) = 9/1
