@@ -19,8 +19,8 @@
 |Hopenet(a=1)|6.92|6.64|5.67|6.41|
 |SSR-Net-MD|5.14|7.09|5.89|6.01|
 |FSA-Net|4.5|6.08|4.64|5.07|
-|Multitask-NetV2(euler angle)|7.64|7.23|8.23|7.7|
-|Multitask-NetV2(vector base)|**7.62**|**6.29**|**4.52**|**6.21**|
+|**Multitask-NetV2(euler angle)**|**7.64**|**7.23**|**8.23**|**7.7**|
+|**Multitask-NetV2(vector base)**|**7.62**|**6.29**|**4.52**|**6.21**|
 
 </br></br></br>
 # Train with CMUDataset(70%), test with CMUDataset(30%)
