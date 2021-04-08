@@ -8,7 +8,7 @@
 |Multitask-NetV1(normal)|4.53|4.6|3.47|4.2|
 |Multitask-NetV1(tanh function)|5.49|3.92|3.21|4.21|
 |Multitask-NetV2(euler angle)|6.02|5.33|5.11|5.48|
-**|Multitask-NetV2(vector base)|5.33|3.9|3.28|4.17|**
+|**Multitask-NetV2(vector base)**|**5.33**|**3.9**|**3.28**|**4.17**|
 
 </br></br></br>
 # Train with 300WLP, test with BIWI
@@ -19,8 +19,8 @@
 |Hopenet(a=1)|6.92|6.64|5.67|6.41|
 |SSR-Net-MD|5.14|7.09|5.89|6.01|
 |FSA-Net|4.5|6.08|4.64|5.07|
-|Multitask-NetV2(euler angle)|||||
-|Multitask-NetV2(vector base)|7.62|6.29|4.52|6.21|
+|Multitask-NetV2(euler angle)|7.64|7.23|8.23|7.7|
+|Multitask-NetV2(vector base)|**7.62**|**6.29**|**4.52**|**6.21**|
 
 </br></br></br>
 # Train with CMUDataset(70%), test with CMUDataset(30%)
