@@ -8,7 +8,7 @@
 |Multitask-NetV1(normal)|4.53|4.6|3.47|4.2|
 |Multitask-NetV1(tanh function)|5.49|3.92|3.21|4.21|
 |Multitask-NetV2(euler angle)|6.02|5.33|5.11|5.48|
-|Multitask-NetV2(vector base)|5.33|3.9|3.28|4.17|
+**|Multitask-NetV2(vector base)|5.33|3.9|3.28|4.17|**
 
 </br></br></br>
 # Train with 300WLP, test with BIWI
