@@ -15,12 +15,13 @@
 
 |Method|Yaw|Pitch|Roll|MAE|
 |:-:|:-:|:-:|:-:|:-:|
-|Hopenet(a=2)|6.47|6.56|5.44|6.16|
-|Hopenet(a=1)|6.92|6.64|5.67|6.41|
-|SSR-Net-MD|5.14|7.09|5.89|6.01|
-|FSA-Net|4.5|6.08|4.64|5.07|
-|**Multitask-NetV2(euler angle)**|**7.64**|**7.23**|**8.23**|**7.7**|
-|**Multitask-NetV2(vector base)**|**7.62**|**6.29**|**4.52**|**6.21**|
+|FAN|8.53|7.48|7.63|7.89|
+|Hopenet(a=2)|5.17|6.98|3.39|5.18|
+|Hopenet(a=1)|4.81|6.61|3.27|4.9|
+|SSR-Net-MD|4.49|6.31|3.61|4.65|
+|FSA-Net|4.27|4.96|2.76|4.00|
+|Multitask-NetV2(euler angle)|4.64|7.23|6.23|6.03|
+|**Multitask-NetV2(vector base)**|**4.62**|**3.29**|**4.52**|**4.14**|
 
 </br></br></br>
 # Train with CMUDataset(70%), test with CMUDataset(30%)
