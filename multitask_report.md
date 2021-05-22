@@ -21,7 +21,7 @@
 |SSR-Net-MD|4.49|6.31|3.61|4.65|
 |FSA-Net|4.27|4.96|2.76|4.00|
 |Multitask-NetV2(euler angle)|4.64|7.23|6.23|6.03|
-|**Multitask-NetV2(vector base)**|**4.62**|**3.29**|**4.52**|**4.14**|
+|**Multitask-NetV2(vector base)**|**4.62**|**4.29**|**4.52**|**4.48**|
 
 </br></br></br>
 # Train with CMUDataset(70%), test with CMUDataset(30%)
