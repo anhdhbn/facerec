@@ -28,8 +28,8 @@
 
 |Method|Iou|Yaw|Pitch|Roll|MAE|
 |:-:|:-:|:-:|:-:|:-:|:-:|
-|Multitask-NetV2(euler angle)||||||
-|Multitask-NetV2(vector base)||||||
+|Multitask-NetV2(euler angle)|59.07|11.49|13.26|9.45|11.4|
+|**Multitask-NetV2(vector base)**|**62.31**|**9.55**|**11.29**|**8.32**|**9.72**|
 
 </br></br></br>
 # All our methods
